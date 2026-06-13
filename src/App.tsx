@@ -92,7 +92,7 @@ export default function App() {
 
   const [notification, setNotification] = useState<{ id: string; type: "success" | "error"; message: string } | null>(null);
 
-  // Sync sessionUser state to localStorage
+  // Sync sessionUser state to localStorage and keep state up-to-date with users database
   useEffect(() => {
     if (sessionUser) {
       localStorage.setItem("smm_current_session", JSON.stringify(sessionUser));
@@ -100,6 +100,23 @@ export default function App() {
       localStorage.removeItem("smm_current_session");
     }
   }, [sessionUser]);
+
+  // Proactively sync sessionUser whenever its matching record in the users database list changes
+  useEffect(() => {
+    if (sessionUser) {
+      const match = users.find((u) => u.id === sessionUser.id);
+      if (match) {
+        if (
+          match.balance !== sessionUser.balance ||
+          match.totalSpent !== sessionUser.totalSpent ||
+          match.status !== sessionUser.status ||
+          match.name !== sessionUser.name
+        ) {
+          setSessionUser(match);
+        }
+      }
+    }
+  }, [users, sessionUser]);
 
   // Synchronize hash address on-load and keep it responsive
   useEffect(() => {
@@ -138,16 +155,18 @@ export default function App() {
     }, 4500);
   };
 
-  // Find active logged-in User profile
-  const currentUser = sessionUser || {
-    id: "GUEST",
-    name: "Guest Explorer",
-    email: "guest@smmboostesa.com",
-    balance: 0.00,
-    totalSpent: 0,
-    role: "user" as const,
-    status: "active" as const
-  };
+  // Find active logged-in User profile reactively from the main database users state list
+  const currentUser = sessionUser
+    ? (users.find((u) => u.id === sessionUser.id) || sessionUser)
+    : {
+        id: "GUEST",
+        name: "Guest Explorer",
+        email: "guest@smmboostesa.com",
+        balance: 0.00,
+        totalSpent: 0,
+        role: "user" as const,
+        status: "active" as const
+      };
 
   // Sync state variables to standard LocalStorage database objects
   useEffect(() => {
@@ -195,17 +214,25 @@ export default function App() {
     }
 
     // Deduct charge from customer balance
+    let updatedActiveUser: User | null = null;
     setUsers((prevUsers) =>
-      prevUsers.map((u) =>
-        u.id === currentUser.id
-          ? { 
-              ...u, 
-              balance: parseFloat((u.balance - calculatedCharge).toFixed(4)),
-              totalSpent: parseFloat((u.totalSpent + calculatedCharge).toFixed(2))
-            }
-          : u
-      )
+      prevUsers.map((u) => {
+        if (u.id === currentUser.id) {
+          const updated = { 
+            ...u, 
+            balance: parseFloat((u.balance - calculatedCharge).toFixed(4)),
+            totalSpent: parseFloat((u.totalSpent + calculatedCharge).toFixed(2))
+          };
+          updatedActiveUser = updated;
+          return updated;
+        }
+        return u;
+      })
     );
+
+    if (updatedActiveUser) {
+      setSessionUser(updatedActiveUser);
+    }
 
     // Enqueue order item
     const newOrder: Order = {
@@ -246,13 +273,20 @@ export default function App() {
 
     if (!isBkashNagad) {
       // Direct automated deposit (Credit Card, PayPal etc)
+      let updatedActiveUser: User | null = null;
       setUsers((prevUsers) =>
-        prevUsers.map((u) =>
-          u.id === currentUser.id
-            ? { ...u, balance: parseFloat((u.balance + amount).toFixed(2)) }
-            : u
-        )
+        prevUsers.map((u) => {
+          if (u.id === currentUser.id) {
+            const updated = { ...u, balance: parseFloat((u.balance + amount).toFixed(2)) };
+            updatedActiveUser = updated;
+            return updated;
+          }
+          return u;
+        })
       );
+      if (updatedActiveUser) {
+        setSessionUser(updatedActiveUser);
+      }
       showToast(`Deposited $${amount.toFixed(2)} via ${method}!`);
     } else {
       // Manual payment gateway triggers exact requested toast
@@ -268,13 +302,21 @@ export default function App() {
     if (!txn || txn.status !== "Pending") return;
 
     // Credit targeted client account
+    let updatedTargetUser: User | null = null;
     setUsers((prevUsers) =>
-      prevUsers.map((u) =>
-        u.id === txn.userId
-          ? { ...u, balance: parseFloat((u.balance + txn.amount).toFixed(2)) }
-          : u
-      )
+      prevUsers.map((u) => {
+        if (u.id === txn.userId) {
+          const updated = { ...u, balance: parseFloat((u.balance + txn.amount).toFixed(2)) };
+          updatedTargetUser = updated;
+          return updated;
+        }
+        return u;
+      })
     );
+
+    if (updatedTargetUser && sessionUser && sessionUser.id === txn.userId) {
+      setSessionUser(updatedTargetUser);
+    }
 
     // Swap transaction status to Completed
     setTransactions((prevTxns) =>

@@ -136,7 +136,7 @@ export const initialUsers: User[] = [
     id: "USR-001",
     name: "John Doe",
     email: "john.doe@example.com",
-    balance: 145.50,
+    balance: 0.00,
     totalSpent: 354.50,
     role: "user",
     status: "active"
@@ -145,7 +145,7 @@ export const initialUsers: User[] = [
     id: "USR-002",
     name: "Sarah Jenkins",
     email: "sarah.j@example.com",
-    balance: 12.00,
+    balance: 0.00,
     totalSpent: 1058.00,
     role: "user",
     status: "active"
