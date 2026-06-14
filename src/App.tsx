@@ -32,6 +32,63 @@ import {
 import { Category, Service, User, Order, Transaction, Ticket } from "./types";
 import UserPanel from "./components/UserPanel";
 import AdminPanel from "./components/AdminPanel";
+import { db } from "./firebase";
+import { 
+  collection, 
+  onSnapshot, 
+  doc, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc,
+  getDocFromServer
+} from "firebase/firestore";
+
+// Required Firestore Error Handlers and Operation Enums
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: null,
+      email: null,
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
+// Hardened connection diagnostics on initial application boot
+async function testConnection() {
+  try {
+    await getDocFromServer(doc(db, 'test', 'connection'));
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.error("Please check your Firebase configuration.");
+    }
+  }
+}
+testConnection();
+
 
 export default function App() {
   // Global State Loaded from LocalStorage or seeded from initialData
@@ -180,116 +237,126 @@ export default function App() {
         status: "active" as const
       };
 
-  // Sync state variables to standard LocalStorage database objects
+  // Real-time Firestore synchronization & default auto-seeding
   useEffect(() => {
-    localStorage.setItem("smm_categories", JSON.stringify(categories));
-  }, [categories]);
-
-  useEffect(() => {
-    localStorage.setItem("smm_services", JSON.stringify(services));
-  }, [services]);
-
-  useEffect(() => {
-    localStorage.setItem("smm_users", JSON.stringify(users));
-  }, [users]);
-
-  useEffect(() => {
-    localStorage.setItem("smm_orders", JSON.stringify(orders));
-  }, [orders]);
-
-  useEffect(() => {
-    localStorage.setItem("smm_transactions", JSON.stringify(transactions));
-  }, [transactions]);
-
-  useEffect(() => {
-    localStorage.setItem("smm_tickets", JSON.stringify(tickets));
-  }, [tickets]);
-
-  // Real-time synchronization loader across tabs/iframes
-  useEffect(() => {
-    const syncFromStorage = (e?: StorageEvent) => {
-      const syncKey = (key: string) => {
-        const value = localStorage.getItem(key);
-        if (!value) return;
-        try {
-          switch (key) {
-            case "smm_categories":
-              setCategories((prev) => {
-                if (JSON.stringify(prev) !== value) return JSON.parse(value);
-                return prev;
-              });
-              break;
-            case "smm_services":
-              setServices((prev) => {
-                if (JSON.stringify(prev) !== value) return JSON.parse(value);
-                return prev;
-              });
-              break;
-            case "smm_users":
-              setUsers((prev) => {
-                if (JSON.stringify(prev) !== value) return JSON.parse(value);
-                return prev;
-              });
-              break;
-            case "smm_orders":
-              setOrders((prev) => {
-                if (JSON.stringify(prev) !== value) return JSON.parse(value);
-                return prev;
-              });
-              break;
-            case "smm_transactions":
-              setTransactions((prev) => {
-                if (JSON.stringify(prev) !== value) return JSON.parse(value);
-                return prev;
-              });
-              break;
-            case "smm_tickets":
-              setTickets((prev) => {
-                if (JSON.stringify(prev) !== value) return JSON.parse(value);
-                return prev;
-              });
-              break;
-            case "smm_current_session":
-              setSessionUser((prev) => {
-                if (JSON.stringify(prev) !== value) return JSON.parse(value);
-                return prev;
-              });
-              break;
-          }
-        } catch (err) {
-          console.error("Storage sync parsing error", err);
-        }
-      };
-
-      if (e) {
-        if (e.key && e.newValue) {
-          syncKey(e.key);
-        }
+    // 1. Categories Sync
+    const unsubCategories = onSnapshot(collection(db, "categories"), (snapshot) => {
+      if (snapshot.empty) {
+        // Seed default categories
+        initialCategories.forEach((cat) => {
+          setDoc(doc(db, "categories", cat.id), cat).catch((e) => handleFirestoreError(e, OperationType.WRITE, `categories/${cat.id}`));
+        });
       } else {
-        // Fallback polling: sync all tables
-        syncKey("smm_categories");
-        syncKey("smm_services");
-        syncKey("smm_users");
-        syncKey("smm_orders");
-        syncKey("smm_transactions");
-        syncKey("smm_tickets");
-        syncKey("smm_current_session");
+        const list: Category[] = [];
+        snapshot.forEach((doc) => {
+          list.push(doc.data() as Category);
+        });
+        setCategories(list);
       }
-    };
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, "categories");
+    });
 
-    window.addEventListener("storage", syncFromStorage);
-    
-    // Low-latency polling fallback (every 800ms) to ensure absolute real-time experience
-    // even in custom iframe/sandbox environments where standard page hooks might be isolated.
-    const interval = setInterval(() => {
-      syncFromStorage();
-    }, 800);
+    // 2. Services Sync
+    const unsubServices = onSnapshot(collection(db, "services"), (snapshot) => {
+      if (snapshot.empty) {
+        // Seed default services
+        initialServices.forEach((srv) => {
+          setDoc(doc(db, "services", srv.id), srv).catch((e) => handleFirestoreError(e, OperationType.WRITE, `services/${srv.id}`));
+        });
+      } else {
+        const list: Service[] = [];
+        snapshot.forEach((doc) => {
+          list.push(doc.data() as Service);
+        });
+        setServices(list);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, "services");
+    });
+
+    // 3. Users Sync
+    const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+      if (snapshot.empty) {
+        // Seed default users
+        initialUsers.forEach((usr) => {
+          setDoc(doc(db, "users", usr.id), usr).catch((e) => handleFirestoreError(e, OperationType.WRITE, `users/${usr.id}`));
+        });
+      } else {
+        const list: User[] = [];
+        snapshot.forEach((doc) => {
+          list.push(doc.data() as User);
+        });
+        setUsers(list);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, "users");
+    });
+
+    // 4. Orders Sync
+    const unsubOrders = onSnapshot(collection(db, "orders"), (snapshot) => {
+      if (snapshot.empty) {
+        initialOrders.forEach((ord) => {
+          setDoc(doc(db, "orders", ord.id), ord).catch((e) => handleFirestoreError(e, OperationType.WRITE, `orders/${ord.id}`));
+        });
+      } else {
+        const list: Order[] = [];
+        snapshot.forEach((doc) => {
+          list.push(doc.data() as Order);
+        });
+        list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setOrders(list);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, "orders");
+    });
+
+    // 5. Transactions Sync
+    const unsubTransactions = onSnapshot(collection(db, "transactions"), (snapshot) => {
+      if (snapshot.empty) {
+        initialTransactions.forEach((tx) => {
+          setDoc(doc(db, "transactions", tx.id), tx).catch((e) => handleFirestoreError(e, OperationType.WRITE, `transactions/${tx.id}`));
+        });
+      } else {
+        const list: Transaction[] = [];
+        snapshot.forEach((doc) => {
+          list.push(doc.data() as Transaction);
+        });
+        list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setTransactions(list);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, "transactions");
+    });
+
+    // 6. Tickets Sync
+    const unsubTickets = onSnapshot(collection(db, "tickets"), (snapshot) => {
+      if (snapshot.empty) {
+        initialTickets.forEach((tck) => {
+          setDoc(doc(db, "tickets", tck.id), tck).catch((e) => handleFirestoreError(e, OperationType.WRITE, `tickets/${tck.id}`));
+        });
+      } else {
+        const list: Ticket[] = [];
+        snapshot.forEach((doc) => {
+          list.push(doc.data() as Ticket);
+        });
+        list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setTickets(list);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, "tickets");
+    });
 
     return () => {
-      window.removeEventListener("storage", syncFromStorage);
-      clearInterval(interval);
+      unsubCategories();
+      unsubServices();
+      unsubUsers();
+      unsubOrders();
+      unsubTransactions();
+      unsubTickets();
     };
   }, []);
+
 
   // ================= CORE CLIENT ACTIONS =================
 
@@ -311,27 +378,6 @@ export default function App() {
       };
     }
 
-    // Deduct charge from customer balance
-    let updatedActiveUser: User | null = null;
-    setUsers((prevUsers) =>
-      prevUsers.map((u) => {
-        if (u.id === currentUser.id) {
-          const updated = { 
-            ...u, 
-            balance: parseFloat((u.balance - calculatedCharge).toFixed(4)),
-            totalSpent: parseFloat((u.totalSpent + calculatedCharge).toFixed(2))
-          };
-          updatedActiveUser = updated;
-          return updated;
-        }
-        return u;
-      })
-    );
-
-    if (updatedActiveUser) {
-      setSessionUser(updatedActiveUser);
-    }
-
     // Enqueue order item
     const newOrder: Order = {
       id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -347,7 +393,17 @@ export default function App() {
       createdAt: new Date().toISOString(),
     };
 
-    setOrders((prev) => [newOrder, ...prev]);
+    // Save to Firestore (real-time listeners will update standard state lists)
+    setDoc(doc(db, "orders", newOrder.id), newOrder)
+      .catch((e) => handleFirestoreError(e, OperationType.CREATE, `orders/${newOrder.id}`));
+
+    // Deduct charge from customer balance in Firestore
+    const userRef = doc(db, "users", currentUser.id);
+    updateDoc(userRef, {
+      balance: parseFloat((currentUser.balance - calculatedCharge).toFixed(4)),
+      totalSpent: parseFloat((currentUser.totalSpent + calculatedCharge).toFixed(2))
+    }).catch((e) => handleFirestoreError(e, OperationType.UPDATE, `users/${currentUser.id}`));
+
     showToast(`Order logged successfully! ID: ${newOrder.id}`);
     return { success: true, message: `Campaign logged! ID: ${newOrder.id}. Dispatching initiated soon.` };
   };
@@ -365,33 +421,24 @@ export default function App() {
       method: method,
       status: isBkashNagad ? "Pending" : "Completed",
       createdAt: new Date().toISOString(),
-      senderNumber: senderNumber,
-      trxId: trxId,
+      senderNumber: senderNumber || "",
+      trxId: trxId || "",
     };
+
+    setDoc(doc(db, "transactions", newTxn.id), newTxn)
+      .catch((e) => handleFirestoreError(e, OperationType.CREATE, `transactions/${newTxn.id}`));
 
     if (!isBkashNagad) {
       // Direct automated deposit (Credit Card, PayPal etc)
-      let updatedActiveUser: User | null = null;
-      setUsers((prevUsers) =>
-        prevUsers.map((u) => {
-          if (u.id === currentUser.id) {
-            const updated = { ...u, balance: parseFloat((u.balance + amount).toFixed(2)) };
-            updatedActiveUser = updated;
-            return updated;
-          }
-          return u;
-        })
-      );
-      if (updatedActiveUser) {
-        setSessionUser(updatedActiveUser);
-      }
+      const userRef = doc(db, "users", currentUser.id);
+      updateDoc(userRef, {
+        balance: parseFloat((currentUser.balance + amount).toFixed(2))
+      }).catch((e) => handleFirestoreError(e, OperationType.UPDATE, `users/${currentUser.id}`));
       showToast(`Deposited $${amount.toFixed(2)} via ${method}!`);
     } else {
       // Manual payment gateway triggers exact requested toast
       showToast("ad fund request inprosess");
     }
-
-    setTransactions((prev) => [newTxn, ...prev]);
   };
 
   // Admin Approve Manual Payment Request
@@ -399,36 +446,28 @@ export default function App() {
     const txn = transactions.find((t) => t.id === txnId);
     if (!txn || txn.status !== "Pending") return;
 
-    // Credit targeted client account
-    let updatedTargetUser: User | null = null;
-    setUsers((prevUsers) =>
-      prevUsers.map((u) => {
-        if (u.id === txn.userId) {
-          const updated = { ...u, balance: parseFloat((u.balance + txn.amount).toFixed(2)) };
-          updatedTargetUser = updated;
-          return updated;
-        }
-        return u;
-      })
-    );
-
-    if (updatedTargetUser && sessionUser && sessionUser.id === txn.userId) {
-      setSessionUser(updatedTargetUser);
+    // Credit targeted client account in Firestore
+    const targetUser = users.find(u => u.id === txn.userId);
+    if (targetUser) {
+      const userRef = doc(db, "users", txn.userId);
+      updateDoc(userRef, {
+        balance: parseFloat((targetUser.balance + txn.amount).toFixed(2))
+      }).catch((e) => handleFirestoreError(e, OperationType.UPDATE, `users/${txn.userId}`));
     }
 
     // Swap transaction status to Completed
-    setTransactions((prevTxns) =>
-      prevTxns.map((t) => (t.id === txnId ? { ...t, status: "Completed" } : t))
-    );
+    const txnRef = doc(db, "transactions", txnId);
+    updateDoc(txnRef, { status: "Completed" })
+      .catch((e) => handleFirestoreError(e, OperationType.UPDATE, `transactions/${txnId}`));
 
     showToast(`Approved deposit of $${txn.amount.toFixed(2)} for ${txn.userName}`);
   };
 
   // Admin Reject Manual Payment Request
   const handleRejectTransaction = (txnId: string) => {
-    setTransactions((prevTxns) =>
-      prevTxns.map((t) => (t.id === txnId ? { ...t, status: "Failed" } : t))
-    );
+    const txnRef = doc(db, "transactions", txnId);
+    updateDoc(txnRef, { status: "Failed" })
+      .catch((e) => handleFirestoreError(e, OperationType.UPDATE, `transactions/${txnId}`));
     showToast(`Payment request rejected.`);
   };
 
@@ -451,30 +490,30 @@ export default function App() {
       ],
     };
 
-    setTickets((prev) => [newTicket, ...prev]);
+    setDoc(doc(db, "tickets", newTicket.id), newTicket)
+      .catch((e) => handleFirestoreError(e, OperationType.CREATE, `tickets/${newTicket.id}`));
+
     showToast("Support ticket created!");
   };
 
   // Reply to support message as Customer
   const handleAddTicketMessage = (ticketId: string, message: string) => {
-    setTickets((prevTickets) =>
-      prevTickets.map((t) =>
-        t.id === ticketId
-          ? {
-              ...t,
-              status: "Open" as const,
-              messages: [
-                ...t.messages,
-                {
-                  sender: "user" as const,
-                  message: message,
-                  createdAt: new Date().toISOString(),
-                },
-              ],
-            }
-          : t
-      )
-    );
+    const targetTicket = tickets.find((t) => t.id === ticketId);
+    if (!targetTicket) return;
+
+    const ticketRef = doc(db, "tickets", ticketId);
+    updateDoc(ticketRef, {
+      status: "Open",
+      messages: [
+        ...targetTicket.messages,
+        {
+          sender: "user" as const,
+          message: message,
+          createdAt: new Date().toISOString(),
+        },
+      ]
+    }).catch((e) => handleFirestoreError(e, OperationType.UPDATE, `tickets/${ticketId}`));
+
     showToast("Message sent to SMM help desk!");
   };
 
@@ -487,43 +526,33 @@ export default function App() {
 
     // Detect if switching to Refunded status
     if (newStatus === "Refunded" && targetOrder.status !== "Refunded") {
-      // Return order charge to Customer wallet balance and deduct spent
-      setUsers((prevUsers) =>
-        prevUsers.map((u) =>
-          u.id === targetOrder.userId
-            ? { 
-                ...u, 
-                balance: parseFloat((u.balance + targetOrder.charge).toFixed(4)),
-                totalSpent: parseFloat(Math.max(0, u.totalSpent - targetOrder.charge).toFixed(2))
-              }
-            : u
-        )
-      );
+      const targetUser = users.find(u => u.id === targetOrder.userId);
+      if (targetUser) {
+        // Return order charge to Customer wallet balance and deduct spent
+        const userRef = doc(db, "users", targetOrder.userId);
+        updateDoc(userRef, { 
+          balance: parseFloat((targetUser.balance + targetOrder.charge).toFixed(4)),
+          totalSpent: parseFloat(Math.max(0, targetUser.totalSpent - targetOrder.charge).toFixed(2))
+        }).catch((e) => handleFirestoreError(e, OperationType.UPDATE, `users/${targetOrder.userId}`));
+      }
       showToast(`Processed refund of $${targetOrder.charge.toFixed(2)} to client ${targetOrder.userName}`);
     }
 
-    setOrders((prevOrders) =>
-      prevOrders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
-    );
+    const orderRef = doc(db, "orders", orderId);
+    updateDoc(orderRef, { status: newStatus })
+      .catch((e) => handleFirestoreError(e, OperationType.UPDATE, `orders/${orderId}`));
+
     showToast(`Order ${orderId} marked as ${newStatus}`);
   };
 
   // Action: Manually adjust client balance
   const handleUpdateUserBalance = (userId: string, changeAmount: number) => {
-    let updatedUser: User | null = null;
-    setUsers((prevUsers) =>
-      prevUsers.map((u) => {
-        if (u.id === userId) {
-          const updated = { ...u, balance: parseFloat(Math.max(0, u.balance + changeAmount).toFixed(2)) };
-          updatedUser = updated;
-          return updated;
-        }
-        return u;
-      })
-    );
-    
-    if (updatedUser && sessionUser && sessionUser.id === userId) {
-      setSessionUser(updatedUser);
+    const targetUser = users.find(u => u.id === userId);
+    if (targetUser) {
+      const userRef = doc(db, "users", userId);
+      updateDoc(userRef, { 
+        balance: parseFloat(Math.max(0, targetUser.balance + changeAmount).toFixed(2)) 
+      }).catch((e) => handleFirestoreError(e, OperationType.UPDATE, `users/${userId}`));
     }
     
     const absoluteVal = Math.abs(changeAmount);
@@ -533,50 +562,51 @@ export default function App() {
 
   // Action: Add SMM package
   const handleAddService = (newService: Service) => {
-    setServices((prev) => [...prev, newService]);
+    setDoc(doc(db, "services", newService.id), newService)
+      .catch((e) => handleFirestoreError(e, OperationType.CREATE, `services/${newService.id}`));
     showToast(`Package package ${newService.id} registered!`);
   };
 
   // Action: Delete package
   const handleDeleteService = (serviceId: string) => {
-    setServices((prev) => prev.filter((s) => s.id !== serviceId));
+    deleteDoc(doc(db, "services", serviceId))
+      .catch((e) => handleFirestoreError(e, OperationType.DELETE, `services/${serviceId}`));
     showToast("SMM Package deleted");
   };
 
   // Action: Remove / Delete client account
   const handleDeleteUser = (userId: string) => {
-    setUsers((prev) => prev.filter((u) => u.id !== userId));
+    deleteDoc(doc(db, "users", userId))
+      .catch((e) => handleFirestoreError(e, OperationType.DELETE, `users/${userId}`));
     showToast(`User account ${userId} has been permanently deleted.`);
   };
 
   // Action: Reply ticket as administrator
   const handleAdminReplyTicket = (ticketId: string, message: string) => {
-    setTickets((prevTickets) =>
-      prevTickets.map((t) =>
-        t.id === ticketId
-          ? {
-              ...t,
-              status: "Answered" as const,
-              messages: [
-                ...t.messages,
-                {
-                  sender: "admin" as const,
-                  message: message,
-                  createdAt: new Date().toISOString(),
-                },
-              ],
-            }
-          : t
-      )
-    );
+    const targetTicket = tickets.find((t) => t.id === ticketId);
+    if (!targetTicket) return;
+
+    const ticketRef = doc(db, "tickets", ticketId);
+    updateDoc(ticketRef, {
+      status: "Answered" as const,
+      messages: [
+        ...targetTicket.messages,
+        {
+          sender: "admin" as const,
+          message: message,
+          createdAt: new Date().toISOString(),
+        },
+      ]
+    }).catch((e) => handleFirestoreError(e, OperationType.UPDATE, `tickets/${ticketId}`));
+
     showToast("Response transmitted to customer client panel!");
   };
 
   // Action: Close Ticket
   const handleCloseTicket = (ticketId: string) => {
-    setTickets((prevTickets) =>
-      prevTickets.map((t) => (t.id === ticketId ? { ...t, status: "Closed" as const } : t))
-    );
+    const ticketRef = doc(db, "tickets", ticketId);
+    updateDoc(ticketRef, { status: "Closed" as const })
+      .catch((e) => handleFirestoreError(e, OperationType.UPDATE, `tickets/${ticketId}`));
     showToast("Ticket marked as Closed.");
   };
 
@@ -645,8 +675,11 @@ export default function App() {
       password: signupPassword.trim()
     };
 
-    setUsers((prev) => [...prev, newUser]);
-    setSessionUser(newUser);
+    setDoc(doc(db, "users", newUser.id), newUser)
+      .then(() => {
+        setSessionUser(newUser);
+      })
+      .catch((e) => handleFirestoreError(e, OperationType.CREATE, `users/${newUser.id}`));
 
     // reset fields
     setSignupUsername("");
@@ -673,7 +706,8 @@ export default function App() {
           status: "active",
           password: "ESA900ZZ"
         };
-        setUsers(prev => [...prev, adminUsr!]);
+        setDoc(doc(db, "users", adminUsr.id), adminUsr)
+          .catch((e) => handleFirestoreError(e, OperationType.CREATE, `users/${adminUsr!.id}`));
       }
       setSessionUser(adminUsr!);
       showToast("Access Level Verified. Administration Console unlocked!");

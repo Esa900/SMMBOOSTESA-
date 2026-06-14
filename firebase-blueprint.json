@@ -1,0 +1,136 @@
+{
+  "entities": {
+    "Category": {
+      "title": "Category",
+      "description": "An SMM service category (e.g. Facebook, Instagram)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "iconName": { "type": "string" }
+      },
+      "required": ["id", "name", "iconName"]
+    },
+    "Service": {
+      "title": "Service",
+      "description": "An SMM service package under a category",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "rate": { "type": "number" },
+        "min": { "type": "integer" },
+        "max": { "type": "integer" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "name", "category", "rate", "min", "max", "description"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user profile record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "balance": { "type": "number" },
+        "totalSpent": { "type": "number" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "status": { "type": "string", "enum": ["active", "suspended"] },
+        "password": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "balance", "totalSpent", "role", "status"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "An SMM service order details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "serviceId": { "type": "string" },
+        "serviceName": { "type": "string" },
+        "category": { "type": "string" },
+        "link": { "type": "string" },
+        "quantity": { "type": "integer" },
+        "charge": { "type": "number" },
+        "status": { "type": "string", "enum": ["Pending", "Processing", "Completed", "Canceled", "Refunded"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "userName", "serviceId", "serviceName", "category", "link", "quantity", "charge", "status", "createdAt"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A payment or fund addition transaction record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "amount": { "type": "number" },
+        "method": { "type": "string" },
+        "status": { "type": "string", "enum": ["Completed", "Pending", "Failed"] },
+        "createdAt": { "type": "string" },
+        "senderNumber": { "type": "string" },
+        "trxId": { "type": "string" },
+        "adminNotes": { "type": "string" }
+      },
+      "required": ["id", "userId", "userName", "amount", "method", "status", "createdAt"]
+    },
+    "Ticket": {
+      "title": "Ticket",
+      "description": "A support ticket record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "subject": { "type": "string" },
+        "category": { "type": "string", "enum": ["Order", "Payment", "Service", "Other"] },
+        "status": { "type": "string", "enum": ["Open", "Answered", "Closed"] },
+        "createdAt": { "type": "string" },
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sender": { "type": "string", "enum": ["user", "admin"] },
+              "message": { "type": "string" },
+              "createdAt": { "type": "string" }
+            },
+            "required": ["sender", "message", "createdAt"]
+          }
+        }
+      },
+      "required": ["id", "userId", "userName", "subject", "category", "status", "createdAt", "messages"]
+    }
+  },
+  "firestore": {
+    "categories": {
+      "schema": "Category",
+      "description": "SMM categories"
+    },
+    "services": {
+      "schema": "Service",
+      "description": "SMM catalog packages list"
+    },
+    "users": {
+      "schema": "User",
+      "description": "Registered panel users index"
+    },
+    "orders": {
+      "schema": "Order",
+      "description": "Submitted panel orders index"
+    },
+    "transactions": {
+      "schema": "Transaction",
+      "description": "Fund deposit transaction tickets list"
+    },
+    "tickets": {
+      "schema": "Ticket",
+      "description": "Customer support tickets list"
+    }
+  }
+}
