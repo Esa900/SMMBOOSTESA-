@@ -96,6 +96,8 @@ export default function App() {
   const [signupPassword, setSignupPassword] = useState("");
   const [signupError, setSignupError] = useState("");
 
+  const [authView, setAuthView] = useState<"login" | "signup">("login");
+
   const [notification, setNotification] = useState<{ id: string; type: "success" | "error"; message: string } | null>(null);
 
   // Sync sessionUser state to localStorage and keep state up-to-date with users database
@@ -120,6 +122,10 @@ export default function App() {
         ) {
           setSessionUser(match);
         }
+      } else {
+        // Account has been deleted by an admin! Log out instantly.
+        setSessionUser(null);
+        showToast("Your session expired or your account has been removed.", "error");
       }
     }
   }, [users, sessionUser]);
@@ -418,13 +424,21 @@ export default function App() {
 
   // Action: Manually adjust client balance
   const handleUpdateUserBalance = (userId: string, changeAmount: number) => {
+    let updatedUser: User | null = null;
     setUsers((prevUsers) =>
-      prevUsers.map((u) =>
-        u.id === userId
-          ? { ...u, balance: parseFloat(Math.max(0, u.balance + changeAmount).toFixed(2)) }
-          : u
-      )
+      prevUsers.map((u) => {
+        if (u.id === userId) {
+          const updated = { ...u, balance: parseFloat(Math.max(0, u.balance + changeAmount).toFixed(2)) };
+          updatedUser = updated;
+          return updated;
+        }
+        return u;
+      })
     );
+    
+    if (updatedUser && sessionUser && sessionUser.id === userId) {
+      setSessionUser(updatedUser);
+    }
     
     const absoluteVal = Math.abs(changeAmount);
     const actionWord = changeAmount >= 0 ? "Credited" : "Deducted";
@@ -984,147 +998,325 @@ export default function App() {
           <div>
             {!sessionUser ? (
               /* Public Landing Page (ESA DEGITAL BOOST BD copy layout!) */
-              <div className="space-y-12 font-sans">
+              <div className="space-y-12 font-sans pb-12">
                 
-                {/* 1. Hero copy of ESA DEGITAL BOOST BD */}
-                <div className="text-center max-w-3xl mx-auto space-y-4 pt-4">
-                  <span className="p-1 px-3 bg-indigo-50 text-indigo-600 rounded-full font-bold text-[10px] uppercase tracking-widest border border-indigo-100 font-sans">
+                {/* 1. Hero copy of ESA DEGITAL BOOST BD matching screenshot */}
+                <div className="text-center max-w-3xl mx-auto space-y-5 pt-6 px-4">
+                  <span className="p-1 px-3 bg-emerald-50 text-emerald-600 rounded-full font-extrabold text-[10px] uppercase tracking-wider border border-emerald-100 font-sans">
                     🔥 SMMBOOSTESA.COM • #1 SMM Agency Distribution Solution
                   </span>
-                  <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight font-display">
-                    Premium Social Media Growth, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600">ESA DEGITAL BOOST BD</span>
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-500 max-w-xl mx-auto leading-relaxed font-sans">
-                    Source lightning fast, organic-grade likes, subscribers, verified views, and custom comments. Fully persistent user database & instant manual bKash/Nagad gateways.
+                  
+                  {/* Custom SMM logo and main brand name matching screenshot */}
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 select-none">
+                    <div className="w-12 h-12 rounded-full bg-[#22c55e] flex items-center justify-center text-white font-extrabold text-2xl shadow-md">
+                      ↗
+                    </div>
+                    <h2 className="text-3xl sm:text-5xl font-black text-[#1a5c37] tracking-tight leading-none font-display">
+                      ESA DEGITAL BOOST BD
+                    </h2>
+                  </div>
+
+                  <div className="flex items-center justify-center space-x-2 text-base sm:text-xl font-extrabold text-slate-700 font-sans pt-2">
+                    <span>Your Growth Awaits —</span>
+                    <button
+                      id="hero-join-now-btn"
+                      onClick={() => setAuthView(authView === "login" ? "signup" : "login")}
+                      className="px-6 py-2 bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-full font-black text-xs sm:text-sm shadow-md transition-all uppercase tracking-widest cursor-pointer mt-0.5"
+                    >
+                      {authView === "login" ? "Join Now!" : "Sign In!"}
+                    </button>
+                  </div>
+                  
+                  <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
+                    Source instant, organic-grade high-retention views, likes, comments, and authentic subscribers.
                   </p>
                 </div>
 
-                {/* 2. Login vs Signup forms Side-by-side */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-5xl mx-auto">
+                {/* 2. Custom switcher: single-card premium mockup matching screenshot */}
+                <div className="max-w-md mx-auto px-4">
+                  {authView === "login" ? (
+                    <div className="bg-white border-2 border-[#22c55e] rounded-[32px] p-6 sm:p-8 shadow-2xl relative transition-all">
+                      <form id="frm-user-login" onSubmit={handleUserLoginSubmit} className="space-y-5">
+                        
+                        {/* Username */}
+                        <div className="space-y-1">
+                          <label className="block text-sm sm:text-base font-black text-slate-800">
+                            Username
+                          </label>
+                          <input
+                            id="inp-login-username"
+                            type="text"
+                            required
+                            placeholder="Enter username"
+                            value={loginUsername}
+                            onChange={(e) => setLoginUsername(e.target.value)}
+                            className="w-full px-4 py-3.5 text-xs sm:text-sm bg-white border-2 border-slate-200 rounded-2xl focus:bg-white text-slate-800 font-bold focus:outline-none focus:border-[#22c55e] transition-all"
+                          />
+                        </div>
+
+                        {/* Password with inline "Forgot password?" */}
+                        <div className="space-y-1">
+                          <label className="block text-sm sm:text-base font-black text-slate-800">
+                            Password
+                          </label>
+                          <div className="relative">
+                            <input
+                              id="inp-login-password"
+                              type="password"
+                              required
+                              placeholder="Enter password"
+                              value={loginPassword}
+                              onChange={(e) => setLoginPassword(e.target.value)}
+                              className="w-full pl-4 pr-32 py-3.5 text-xs sm:text-sm bg-white border-2 border-slate-200 rounded-2xl focus:bg-white text-slate-800 font-bold focus:outline-none focus:border-[#22c55e] transition-all"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => showToast("Password help link sent to your registered email!")}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] sm:text-xs font-bold text-blue-500 hover:text-blue-600 transition-all cursor-pointer"
+                            >
+                              Forgot password?
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Remember me checkbox aligned perfectly */}
+                        <div className="flex items-center space-x-2.5">
+                          <input
+                            id="chk-login-remember"
+                            type="checkbox"
+                            defaultChecked
+                            className="w-4.5 h-4.5 text-blue-600 bg-[#d0f2fe] border-none rounded-md focus:ring-0 cursor-pointer"
+                          />
+                          <label htmlFor="chk-login-remember" className="text-xs font-bold text-slate-500 cursor-pointer">
+                            Remember me
+                          </label>
+                        </div>
+
+                        {loginError && (
+                          <div className="p-2.5 bg-red-50 text-red-600 rounded-xl text-[11px] font-bold border border-red-100">
+                            {loginError}
+                          </div>
+                        )}
+
+                        {/* Fat green Sign in button */}
+                        <button
+                          id="btn-login-submit"
+                          type="submit"
+                          className="w-full py-4 bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-2xl font-black text-sm sm:text-base transition-all shadow-md cursor-pointer text-center uppercase tracking-wider"
+                        >
+                          Sign in
+                        </button>
+
+                        {/* Interactive Google Autologin Widget based on design screenshot */}
+                        <div 
+                          onClick={() => {
+                            setLoginUsername("john");
+                            setLoginPassword("123");
+                            showToast("Interactive demo credentials prefilled! Please click 'Sign in' to test john's account.");
+                          }}
+                          className="border border-slate-200 hover:border-slate-350 bg-white/90 hover:bg-slate-50/80 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition-all shadow-sm"
+                        >
+                          <div className="flex items-center space-x-2.5">
+                            <div className="w-8 h-8 rounded-full bg-slate-400 flex items-center justify-center text-white text-[11px] font-bold">
+                              Bd
+                            </div>
+                            <div className="text-left leading-normal">
+                              <span className="text-[11.5px] font-black text-slate-700 block leading-none">Sign in as Bd</span>
+                              <span className="text-[10px] text-slate-400 block font-mono mt-0.5 leading-none">
+                                bdh589038@gmail.com
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Google official flag logo */}
+                          <div className="w-8 h-8 flex items-center justify-center shrink-0">
+                            <svg className="w-4.5 h-4.5" viewBox="0 0 24 24">
+                              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                            </svg>
+                          </div>
+                        </div>
+
+                        {/* Prompt to register */}
+                        <div className="text-center text-xs text-slate-500 font-bold pt-1">
+                          <span>Do not have an account? </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAuthView("signup");
+                              setSignupError("");
+                            }}
+                            className="text-blue-600 hover:text-blue-700 font-extrabold focus:outline-none cursor-pointer underline hover:scale-102 transition-all"
+                          >
+                            Sign up
+                          </button>
+                        </div>
+
+                      </form>
+                      
+                      <div className="mt-4 p-2 bg-slate-50 border border-slate-150 rounded-xl text-[10px] text-slate-400 font-bold text-center leading-normal">
+                        💡 Click the white Google bar above to prefill instantly!
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-white border-2 border-[#22c55e] rounded-[32px] p-6 sm:p-8 shadow-2xl relative transition-all">
+                      <form id="frm-user-signup" onSubmit={handleUserSignupSubmit} className="space-y-4">
+                        
+                        {/* Username */}
+                        <div className="space-y-1">
+                          <label className="block text-xs sm:text-sm font-black text-slate-800">Desired Username</label>
+                          <input
+                            id="inp-signup-username"
+                            type="text"
+                            required
+                            placeholder="e.g. razib90"
+                            value={signupUsername}
+                            onChange={(e) => setSignupUsername(e.target.value)}
+                            className="w-full px-4 py-3 text-xs sm:text-sm bg-white border-2 border-slate-200 rounded-2xl focus:bg-white text-slate-800 font-bold focus:outline-none focus:border-[#22c55e] transition-all"
+                          />
+                        </div>
+
+                        {/* Email */}
+                        <div className="space-y-1">
+                          <label className="block text-xs sm:text-sm font-black text-slate-800">Your Email Address</label>
+                          <input
+                            id="inp-signup-email"
+                            type="email"
+                            required
+                            placeholder="e.g. customer@gmail.com"
+                            value={signupEmail}
+                            onChange={(e) => setSignupEmail(e.target.value)}
+                            className="w-full px-4 py-3 text-xs sm:text-sm bg-white border-2 border-slate-200 rounded-2xl focus:bg-white text-slate-800 font-bold focus:outline-none focus:border-[#22c55e] transition-all"
+                          />
+                        </div>
+
+                        {/* Password */}
+                        <div className="space-y-1">
+                          <label className="block text-xs sm:text-sm font-black text-slate-800">Password</label>
+                          <input
+                            id="inp-signup-password"
+                            type="password"
+                            required
+                            placeholder="••••••••"
+                            value={signupPassword}
+                            onChange={(e) => setSignupPassword(e.target.value)}
+                            className="w-full px-4 py-3 text-xs sm:text-sm bg-white border-2 border-slate-200 rounded-2xl focus:bg-white text-slate-800 font-bold focus:outline-none focus:border-[#22c55e] transition-all"
+                          />
+                        </div>
+
+                        {signupError && (
+                          <div className="p-2.5 bg-red-50 text-red-600 rounded-xl text-[11px] font-bold border border-red-100">
+                            {signupError}
+                          </div>
+                        )}
+
+                        {/* Register Button */}
+                        <button
+                          id="btn-signup-submit"
+                          type="submit"
+                          className="w-full py-3.5 bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-2xl font-black text-sm transition-all shadow-md cursor-pointer text-center uppercase tracking-wider"
+                        >
+                          Sign up
+                        </button>
+
+                        {/* Switch Back to Login */}
+                        <div className="text-center text-xs text-slate-500 font-bold pt-1">
+                          <span>Already have an account? </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAuthView("login");
+                              setLoginError("");
+                            }}
+                            className="text-blue-600 hover:text-blue-700 font-extrabold focus:outline-none cursor-pointer underline"
+                          >
+                            Sign in
+                          </button>
+                        </div>
+
+                      </form>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. Illustration block matching the bottom of the user screenshot */}
+                <div className="max-w-xl mx-auto px-4 text-center mt-6 relative select-none">
                   
-                  {/* Login segment (Left, span 6) */}
-                  <div className="lg:col-span-6 bg-white border border-slate-100 p-8 rounded-3xl shadow-sm flex flex-col justify-between space-y-6">
-                    <div className="space-y-2">
-                      <span className="p-1 px-2.5 bg-slate-50 text-slate-500 rounded-lg text-[9px] uppercase font-black">Secure Login Gate</span>
-                      <h3 className="text-lg font-bold text-slate-800">Welcome Back Client</h3>
-                      <p className="text-xs text-slate-400">Enter your registered credentials to launch ordering console.</p>
+                  {/* Megaphone and floating elements simulation panel */}
+                  <div className="p-6 bg-emerald-50/45 rounded-3xl border border-emerald-100 relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
+                    
+                    {/* Big animated relative floating circles representing social targets */}
+                    <div className="absolute top-10 left-12 w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-md animate-bounce">
+                      ▶
+                    </div>
+                    
+                    <div className="absolute top-6 right-16 w-11 h-11 bg-rose-500 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-md animate-bounce delay-300">
+                      ❤️
                     </div>
 
-                    <form id="frm-user-login" onSubmit={handleUserLoginSubmit} className="space-y-4">
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase">Username / Email</label>
-                        <input
-                          id="inp-login-username"
-                          type="text"
-                          required
-                          placeholder="e.g. john"
-                          value={loginUsername}
-                          onChange={(e) => setLoginUsername(e.target.value)}
-                          className="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white text-slate-800 font-medium focus:none"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase">Password</label>
-                        <input
-                          id="inp-login-password"
-                          type="password"
-                          required
-                          placeholder="••••••••"
-                          value={loginPassword}
-                          onChange={(e) => setLoginPassword(e.target.value)}
-                          className="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white text-slate-800 font-medium focus:none"
-                        />
-                      </div>
-
-                      {loginError && (
-                        <div className="p-2.5 bg-red-50 text-red-600 rounded-xl text-[11px] font-bold border border-red-100">
-                          {loginError}
-                        </div>
-                      )}
-
-                      <button
-                        id="btn-login-submit"
-                        type="submit"
-                        className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow cursor-pointer uppercase tracking-wider"
-                      >
-                        Sign In Now <ArrowRight className="w-3.5 h-3.5 inline ml-1" />
-                      </button>
-                    </form>
-
-                    <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl text-[10px] text-slate-400 font-medium leading-relaxed">
-                      💡 <strong>Seeded Account Hints:</strong> Enter username <code>john</code> with password <code>123</code> (free $145 balance preset) to instantly login!
+                    <div className="absolute bottom-16 left-6 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-md animate-pulse">
+                      👍
                     </div>
+
+                    {/* Speech bubble 50K indicator badge */}
+                    <div className="absolute bottom-12 right-12 bg-red-500 text-white px-3.5 py-1.5 rounded-2xl font-black text-xs shadow-lg uppercase tracking-wider flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white inline-block animate-ping"></span>
+                      👥 50K+ Active
+                    </div>
+
+                    {/* Clean SVG Megaphone Core Drawing */}
+                    <div className="w-36 h-36 relative z-10 transition-transform duration-500 hover:scale-110 cursor-alias">
+                      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl text-indigo-700 fill-current">
+                        <path d="M75 50 c0-15-5-25-15-28 L25 35 c-3 1-5 4-5 7 v16 c0 3 2 6 5 7 l35 13 c10-3 15-13 15-28 Z" fill="#6366f1" />
+                        <path d="M75 35 c8 5 12 11 12 15 s-4 10-12 15 Z" fill="#4f46e5" />
+                        <path d="M30 65 l5 20 c1 3 4 5 7 5 h6 c3 0 5-2 4-5 l-8-20 Z" fill="#475569" />
+                        <ellipse cx="75" cy="50" rx="4" ry="15" fill="#f43f5e" />
+                        <circle cx="28" cy="46" r="3" fill="#ffffff" />
+                      </svg>
+                    </div>
+
+                    {/* Bold heavy stacked slogans like mockup */}
+                    <div className="mt-8 space-y-1.5 relative z-10 font-sans">
+                      <p className="font-sans font-black text-indigo-950 text-xl tracking-tight uppercase leading-none">
+                        How to Get Your First
+                      </p>
+                      <div className="inline-block bg-black text-white px-8 py-2 rounded-xl">
+                        <span className="font-sans font-black text-2xl tracking-widest text-[#22c55e]">
+                          1 MILLION
+                        </span>
+                      </div>
+                      <p className="text-[10px] uppercase tracking-widest text-[#1a5c37] font-sans font-bold mt-1">
+                        Subscribers • Followers • Organic Verified Traffic
+                      </p>
+                    </div>
+
                   </div>
 
-                  {/* Signup segment (Right, span 6) */}
-                  <div className="lg:col-span-6 bg-white border border-slate-100 p-8 rounded-3xl shadow-sm flex flex-col justify-between space-y-6">
-                    <div className="space-y-2">
-                      <span className="p-1 px-2.5 bg-indigo-50 text-indigo-500 rounded-lg text-[9px] uppercase font-black">Quick Signup Portal</span>
-                      <h3 className="text-lg font-bold text-slate-800">New Account Registration</h3>
-                      <p className="text-xs text-slate-400">"jar mone tai registration Kore login korbi" - Anyone can sign up freely!</p>
-                    </div>
+                </div>
 
-                    <form id="frm-user-signup" onSubmit={handleUserSignupSubmit} className="space-y-4">
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase">Desired Username</label>
-                        <input
-                          id="inp-signup-username"
-                          type="text"
-                          required
-                          placeholder="e.g. razib90"
-                          value={signupUsername}
-                          onChange={(e) => setSignupUsername(e.target.value)}
-                          className="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white text-slate-800 font-medium focus:none"
-                        />
-                      </div>
+                {/* 4. Active Contact Gateways floating support toggles */}
+                <div className="fixed bottom-4 left-4 z-50">
+                  <a 
+                    href="https://t.me/yourusername" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="p-3 bg-sky-500 hover:bg-sky-600 text-white rounded-full shadow-lg flex items-center justify-center space-x-1.5 transition-all text-xs font-bold hover:scale-105"
+                  >
+                    <span>✈ Telegram</span>
+                  </a>
+                </div>
 
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase">Your Email Address</label>
-                        <input
-                          id="inp-signup-email"
-                          type="email"
-                          required
-                          placeholder="e.g. customer@smmboostesa.com"
-                          value={signupEmail}
-                          onChange={(e) => setSignupEmail(e.target.value)}
-                          className="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white text-slate-800 font-medium"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase">Password</label>
-                        <input
-                          id="inp-signup-password"
-                          type="password"
-                          required
-                          placeholder="••••••••"
-                          value={signupPassword}
-                          onChange={(e) => setSignupPassword(e.target.value)}
-                          className="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white text-slate-800 font-medium"
-                        />
-                      </div>
-
-                      {signupError && (
-                        <div className="p-2.5 bg-red-50 text-red-600 rounded-xl text-[11px] font-bold border border-red-100">
-                          {signupError}
-                        </div>
-                      )}
-
-                      <button
-                        id="btn-signup-submit"
-                        type="submit"
-                        className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow cursor-pointer uppercase tracking-wider"
-                      >
-                        Register & Start Free <ArrowRight className="w-3.5 h-3.5 inline ml-1" />
-                      </button>
-                    </form>
-
-                    <div className="p-3 bg-indigo-50 text-indigo-800 border border-indigo-100 rounded-xl text-[10px] font-medium leading-relaxed">
-                      💳 <strong>Wallet Policy:</strong> New accounts start with a **$0.00** balance preset. Please submit a manual bKash or Nagad recharge to add balance!
-                    </div>
-                  </div>
-
+                <div className="fixed bottom-4 right-4 z-50">
+                  <a 
+                    href="https://wa.me/8801700000000" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="p-3 bg-[#22c55e] hover:bg-emerald-600 text-white rounded-full shadow-lg flex items-center justify-center space-x-1.5 transition-all text-xs font-bold hover:scale-105"
+                  >
+                    <span>💬 WhatsApp Support</span>
+                  </a>
                 </div>
 
                 {/* 3. SMM Category matrix & Public Pricing table list */}

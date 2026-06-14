@@ -1135,7 +1135,13 @@ export default function UserPanel({
                           </div>
                           <div className="text-right">
                             <span className="font-bold font-mono text-emerald-600 block text-[13px]">+${txn.amount.toFixed(2)}</span>
-                            <span className="px-1.5 py-0.5 rounded text-[8px] bg-emerald-50 text-emerald-600 border border-emerald-100 font-bold uppercase mt-1 inline-block">Approved</span>
+                            {txn.status === "Pending" ? (
+                              <span className="px-1.5 py-0.5 rounded text-[8px] bg-amber-50 text-amber-600 border border-amber-100 font-extrabold uppercase mt-1 inline-block">Pending</span>
+                            ) : txn.status === "Completed" ? (
+                              <span className="px-1.5 py-0.5 rounded text-[8px] bg-emerald-50 text-emerald-600 border border-emerald-100 font-extrabold uppercase mt-1 inline-block">Approved</span>
+                            ) : (
+                              <span className="px-1.5 py-0.5 rounded text-[8px] bg-rose-50 text-rose-600 border border-rose-100 font-extrabold uppercase mt-1 inline-block">Rejected</span>
+                            )}
                           </div>
                         </div>
                       ))
