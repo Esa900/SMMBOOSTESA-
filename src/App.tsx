@@ -205,6 +205,92 @@ export default function App() {
     localStorage.setItem("smm_tickets", JSON.stringify(tickets));
   }, [tickets]);
 
+  // Real-time synchronization loader across tabs/iframes
+  useEffect(() => {
+    const syncFromStorage = (e?: StorageEvent) => {
+      const syncKey = (key: string) => {
+        const value = localStorage.getItem(key);
+        if (!value) return;
+        try {
+          switch (key) {
+            case "smm_categories":
+              setCategories((prev) => {
+                if (JSON.stringify(prev) !== value) return JSON.parse(value);
+                return prev;
+              });
+              break;
+            case "smm_services":
+              setServices((prev) => {
+                if (JSON.stringify(prev) !== value) return JSON.parse(value);
+                return prev;
+              });
+              break;
+            case "smm_users":
+              setUsers((prev) => {
+                if (JSON.stringify(prev) !== value) return JSON.parse(value);
+                return prev;
+              });
+              break;
+            case "smm_orders":
+              setOrders((prev) => {
+                if (JSON.stringify(prev) !== value) return JSON.parse(value);
+                return prev;
+              });
+              break;
+            case "smm_transactions":
+              setTransactions((prev) => {
+                if (JSON.stringify(prev) !== value) return JSON.parse(value);
+                return prev;
+              });
+              break;
+            case "smm_tickets":
+              setTickets((prev) => {
+                if (JSON.stringify(prev) !== value) return JSON.parse(value);
+                return prev;
+              });
+              break;
+            case "smm_current_session":
+              setSessionUser((prev) => {
+                if (JSON.stringify(prev) !== value) return JSON.parse(value);
+                return prev;
+              });
+              break;
+          }
+        } catch (err) {
+          console.error("Storage sync parsing error", err);
+        }
+      };
+
+      if (e) {
+        if (e.key && e.newValue) {
+          syncKey(e.key);
+        }
+      } else {
+        // Fallback polling: sync all tables
+        syncKey("smm_categories");
+        syncKey("smm_services");
+        syncKey("smm_users");
+        syncKey("smm_orders");
+        syncKey("smm_transactions");
+        syncKey("smm_tickets");
+        syncKey("smm_current_session");
+      }
+    };
+
+    window.addEventListener("storage", syncFromStorage);
+    
+    // Low-latency polling fallback (every 800ms) to ensure absolute real-time experience
+    // even in custom iframe/sandbox environments where standard page hooks might be isolated.
+    const interval = setInterval(() => {
+      syncFromStorage();
+    }, 800);
+
+    return () => {
+      window.removeEventListener("storage", syncFromStorage);
+      clearInterval(interval);
+    };
+  }, []);
+
   // ================= CORE CLIENT ACTIONS =================
 
   // Place SMM Order
