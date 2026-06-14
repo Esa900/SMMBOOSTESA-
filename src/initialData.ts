@@ -240,7 +240,7 @@ export const initialTransactions: Transaction[] = [
     userId: "USR-001",
     userName: "John Doe",
     amount: 50.00,
-    method: "PayPal",
+    method: "bKash Personal",
     status: "Completed",
     createdAt: "2026-06-12T15:20:00-07:00"
   },
@@ -281,14 +281,14 @@ export const initialTickets: Ticket[] = [
     id: "TCK-5082",
     userId: "USR-002",
     userName: "Sarah Jenkins",
-    subject: "Failing to add funds via PayPal",
+    subject: "Failing to send manual bKash deposit",
     category: "Payment",
     status: "Open",
     createdAt: "2026-06-13T04:20:00-07:00",
     messages: [
       {
         sender: "user",
-        message: "Hi, I am trying to deposit $50 using PayPal but I received a card gateway error. Can you help me process this manually or check the node settings?",
+        message: "Hi, I am trying to deposit $50 of manual bKash but my TrxId keeps getting flagged. Can you help me process this manually or check the transaction status?",
         createdAt: "2026-06-13T04:20:00-07:00"
       }
     ]

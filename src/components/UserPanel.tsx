@@ -172,8 +172,8 @@ export default function UserPanel({
     setFundError("");
     setPaymentSuccess(false);
 
-    if (fundAmount <= 0) {
-      setFundError("Please enter an amount greater than 0");
+    if (fundAmount < 3) {
+      setFundError("Minimum deposit is $3.00");
       return;
     }
 
@@ -926,7 +926,7 @@ export default function UserPanel({
                       <input
                         id="inp-fund-amount"
                         type="number"
-                        min="5"
+                        min="3"
                         max="5000"
                         value={fundAmount}
                         onChange={(e) => {
@@ -936,20 +936,19 @@ export default function UserPanel({
                         className="w-full pl-8 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-lg font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       />
                     </div>
-                    <span className="text-[10px] text-slate-400 font-medium block mt-1">Min deposit: $5.00 | Max deposit: $5,000.00</span>
+                    <span className="text-[10px] text-slate-400 font-medium block mt-1">Min deposit: $3.00 | Max deposit: $5,000.00</span>
                   </div>
 
                   {/* Payment Method Selector */}
                   <div>
                     <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Select Method</label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {["bKash Personal", "Nagad Personal", "Credit Card", "PayPal"].map((method) => {
+                    <div className="grid grid-cols-2 gap-2">
+                      {["bKash Personal", "Nagad Personal"].map((method) => {
                         const isMatch = paymentMethod === method;
                         let brandClass = "border-slate-100 text-slate-600 hover:bg-slate-50";
                         if (isMatch) {
                           if (method.includes("bKash")) brandClass = "bg-pink-600 border-pink-600 text-white shadow-sm shadow-pink-100";
                           else if (method.includes("Nagad")) brandClass = "bg-orange-600 border-orange-600 text-white shadow-sm shadow-orange-100";
-                          else brandClass = "bg-slate-900 border-slate-900 text-white shadow-sm";
                         }
                         return (
                           <button
@@ -1022,74 +1021,6 @@ export default function UserPanel({
                           />
                         </div>
                       </div>
-                    </div>
-                  )}
-
-                  {paymentMethod === "Credit Card" && (
-                    <div className="space-y-3 pt-2">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cardholder Name</label>
-                          <input
-                            id="inp-card-name"
-                            type="text"
-                            placeholder="John Doe"
-                            required
-                            value={cardName}
-                            onChange={(e) => setCardName(e.target.value)}
-                            className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:ring-1 focus:ring-indigo-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Card Number</label>
-                          <input
-                            id="inp-card-number"
-                            type="text"
-                            placeholder="4111 2222 3333 4444"
-                            maxLength={19}
-                            required
-                            value={cardNumber}
-                            onChange={(e) => setCardNumber(e.target.value)}
-                            className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono focus:ring-1 focus:ring-indigo-500"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Expiry (MM/YY)</label>
-                          <input
-                            id="inp-card-expiry"
-                            type="text"
-                            placeholder="12/28"
-                            maxLength={5}
-                            required
-                            value={cardExpiry}
-                            onChange={(e) => setCardExpiry(e.target.value)}
-                            className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono focus:ring-1 focus:ring-indigo-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">CVV / CVC</label>
-                          <input
-                            id="inp-card-cvv"
-                            type="password"
-                            placeholder="***"
-                            maxLength={3}
-                            required
-                            value={cardCvv}
-                            onChange={(e) => setCardCvv(e.target.value)}
-                            className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono focus:ring-1 focus:ring-indigo-500"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {paymentMethod === "PayPal" && (
-                    <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl text-xs text-blue-800 leading-relaxed">
-                      <p className="font-bold mb-1">Instant PayPal Portal Redirect</p>
-                      Clicking deposit will open an authorization pipeline in our simulated sandbox. Funds are immediately updated upon successful login.
                     </div>
                   )}
 
