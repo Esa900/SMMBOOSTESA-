@@ -24,7 +24,8 @@ import {
   ArrowRight,
   Shield,
   Layers,
-  Sparkles
+  Sparkles,
+  Globe
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Service, Category, Order, Ticket, Transaction, User } from "../types";
@@ -40,6 +41,8 @@ interface UserPanelProps {
   onAddFunds: (amount: number, method: string, senderNumber?: string, trxId?: string) => void;
   onAddTicket: (subject: string, category: Ticket["category"], message: string) => void;
   onAddTicketMessage: (ticketId: string, message: string) => void;
+  activeTab?: "new-order" | "orders" | "services" | "add-funds" | "tickets";
+  setActiveTab?: (tab: "new-order" | "orders" | "services" | "add-funds" | "tickets") => void;
 }
 
 export default function UserPanel({
@@ -53,8 +56,12 @@ export default function UserPanel({
   onAddFunds,
   onAddTicket,
   onAddTicketMessage,
+  activeTab: propActiveTab,
+  setActiveTab: propSetActiveTab,
 }: UserPanelProps) {
-  const [activeTab, setActiveTab ] = useState<"new-order" | "orders" | "services" | "add-funds" | "tickets">("new-order");
+  const [localActiveTab, setLocalActiveTab] = useState<"new-order" | "orders" | "services" | "add-funds" | "tickets">("new-order");
+  const activeTab = propActiveTab || localActiveTab;
+  const setActiveTab = propSetActiveTab || setLocalActiveTab;
 
   // Selection states for New Order Form
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("instagram");
@@ -243,131 +250,222 @@ export default function UserPanel({
   const activeTicket = tickets.find(t => t.id === activeTicketId);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      {/* LEFT NAVIGATION COLUMN */}
-      <div className="lg:col-span-3">
-        {/* User Card */}
-        <div id="user-pnl-overview" className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm mb-6">
-          <div className="flex items-center space-x-4 mb-5">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold border border-indigo-100 uppercase">
-              {currentUser.name.slice(0, 2)}
-            </div>
-            <div>
-              <h3 className="font-semibold text-slate-800 leading-tight block">{currentUser.name}</h3>
-              <span className="text-xs text-slate-400 font-medium block">{currentUser.email}</span>
-            </div>
+    <div id="famegrows-client-layout" className="w-full space-y-6 font-sans">
+      {/* 1. TOP HIGH-POLISHED STATS CARDS BLOCK */}
+      <div id="user-stats-cards-grid" className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        
+        {/* Card 1: Username & Profile Status */}
+        <div className="bg-white border-2 border-green-500/20 rounded-2xl p-4 flex items-center gap-3 shadow-md">
+          <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-100 overflow-hidden flex items-center justify-center shrink-0">
+            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none">
+              <circle cx="50" cy="50" r="45" fill="#fdbaf8" />
+              <circle cx="50" cy="40" r="20" fill="#f43f5e" />
+              <path d="M25 80 C 25 62, 75 62, 75 80 Z" fill="#9f1239" />
+              <circle cx="43" cy="38" r="3" fill="#ffffff" />
+              <circle cx="57" cy="38" r="3" fill="#ffffff" />
+              <path d="M45 48 Q 50 51, 55 48" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+            </svg>
           </div>
-
-          {/* Quick Balance Status */}
-          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 mb-4">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-slate-500">Available Balance</span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-50 text-emerald-600 font-semibold border border-emerald-100">Active</span>
-            </div>
-            <div className="text-2xl font-bold font-mono text-slate-900">${currentUser.balance.toFixed(2)}</div>
-            <div className="mt-3 flex gap-2">
-              <button 
-                id="btn-nav-add-funds"
-                onClick={() => setActiveTab("add-funds")}
-                className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-medium rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer"
-              >
-                <PlusCircle className="w-3.5 h-3.5" /> Add Funds
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 text-center">
-            <div className="bg-slate-50/50 p-2 text-xs rounded-xl border border-slate-50">
-              <div className="text-slate-400 font-semibold">Total Spent</div>
-              <div className="font-mono text-slate-800 font-bold mt-1">${currentUser.totalSpent.toFixed(2)}</div>
-            </div>
-            <div className="bg-slate-50/50 p-2 text-xs rounded-xl border border-slate-50">
-              <div className="text-slate-400 font-semibold">Orders</div>
-              <div className="font-mono text-slate-800 font-bold mt-1">{userOrders.length}</div>
+          <div className="min-w-0 flex-1">
+            <span className="text-[10px] font-bold text-slate-400 block tracking-wide uppercase">Username</span>
+            <div className="flex items-center gap-1">
+              <span className="text-xs sm:text-sm font-black text-slate-800 truncate font-sans">{currentUser.name}</span>
+              <span className="w-4 h-4 bg-[#22c55e] text-white rounded-full flex items-center justify-center text-[9px] font-bold shrink-0" title="Verified Member">✓</span>
             </div>
           </div>
         </div>
 
-        {/* Side Nav Menu */}
-        <div id="user-sidebar-menu" className="bg-white border border-slate-100 rounded-3xl p-3 shadow-sm">
-          <span className="px-4 py-2 block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Navigation</span>
-          <nav className="space-y-1">
-            <button
-              id="sidebar-nav-new-order"
-              onClick={() => { setActiveTab("new-order"); setActiveTicketId(null); }}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all cursor-pointer ${
-                activeTab === "new-order" 
-                  ? "bg-slate-900 text-white shadow-sm" 
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-              }`}
-            >
-              <PlusCircle className="w-5 h-5 shrink-0" />
-              <span>New Order</span>
-            </button>
-
-            <button
-              id="sidebar-nav-orders"
-              onClick={() => { setActiveTab("orders"); setActiveTicketId(null); }}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all cursor-pointer ${
-                activeTab === "orders" 
-                  ? "bg-slate-900 text-white shadow-sm" 
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-              }`}
-            >
-              <History className="w-5 h-5 shrink-0" />
-              <span className="flex-1 text-left">My Orders</span>
-              <span className="font-mono text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold">
-                {userOrders.length}
-              </span>
-            </button>
-
-            <button
-              id="sidebar-nav-services"
-              onClick={() => { setActiveTab("services"); setActiveTicketId(null); }}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all cursor-pointer ${
-                activeTab === "services" 
-                  ? "bg-slate-900 text-white shadow-sm" 
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-              }`}
-            >
-              <List className="w-5 h-5 shrink-0" />
-              <span>Services List</span>
-            </button>
-
-            <button
-              id="sidebar-nav-add-funds"
-              onClick={() => { setActiveTab("add-funds"); setActiveTicketId(null); }}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all cursor-pointer ${
-                activeTab === "add-funds" 
-                  ? "bg-slate-900 text-white shadow-sm" 
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-              }`}
-            >
-              <CreditCard className="w-5 h-5 shrink-0" />
-              <span>Add Funds</span>
-            </button>
-
-            <button
-              id="sidebar-nav-tickets"
-              onClick={() => { setActiveTab("tickets"); setActiveTicketId(null); }}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all cursor-pointer ${
-                activeTab === "tickets" 
-                  ? "bg-slate-900 text-white shadow-sm" 
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-              }`}
-            >
-              <LifeBuoy className="w-5 h-5 shrink-0" />
-              <span className="flex-1 text-left">Support Ticket</span>
-              {tickets.filter(t => t.status === "Answered").length > 0 && (
-                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 ring-4 ring-indigo-50 animate-pulse"></span>
-              )}
-            </button>
-          </nav>
+        {/* Card 2: Wallet Balance */}
+        <div className="bg-white border-2 border-green-500/20 rounded-2xl p-4 flex items-center gap-3 shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 border border-emerald-100">
+            <span className="text-xl">💵</span>
+          </div>
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 block tracking-wide uppercase">Balance</span>
+            <span className="text-sm sm:text-base font-black text-slate-800 font-mono block">${currentUser.balance.toFixed(3)}</span>
+          </div>
         </div>
+
+        {/* Card 3: Total Orders Counter */}
+        <div className="bg-white border-2 border-green-500/20 rounded-2xl p-4 flex items-center gap-3 shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100">
+            <span className="text-xl">📦</span>
+          </div>
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 block tracking-wide uppercase">Total Orders</span>
+            <span className="text-sm sm:text-base font-black text-slate-800 font-mono block">
+              {(532551 + userOrders.length).toLocaleString()}
+            </span>
+          </div>
+        </div>
+
+        {/* Card 4: Announcement Megaphone links */}
+        <div className="bg-white border-2 border-green-500/20 rounded-2xl p-4 flex items-center gap-3 shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0 border border-emerald-100">
+            <span className="text-xl">📣</span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <span className="text-[10px] font-bold text-slate-400 block tracking-wide uppercase">Announcement</span>
+            <a 
+              href="https://t.me/smmboostesa" 
+              target="_blank" 
+              rel="noreferrer"
+              className="mt-1 px-3 py-1 bg-[#22c55e] hover:bg-green-600 text-white rounded-full text-[10.5px] font-extrabold flex items-center justify-center gap-1 transition-all"
+            >
+              Join Now →
+            </a>
+          </div>
+        </div>
+
       </div>
 
-      {/* RIGHT DISPLAY PANEL */}
-      <div className="lg:col-span-9">
+      {/* 2. SOCIAL CATEGORY CAPSULES SELECTION GRID */}
+      <div id="social-grid-wrapper" className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-2">
+        {[
+          { icon: <Instagram className="w-5 h-5 text-white" />, targetId: "instagram", name: "Instagram" },
+          { icon: <Facebook className="w-5 h-5 text-white" />, targetId: "facebook", name: "Facebook" },
+          { icon: <Youtube className="w-5 h-5 text-white" />, targetId: "youtube", name: "YouTube" },
+          { icon: <svg viewBox="0 0 24 24" className="w-5 h-5 text-white fill-current"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>, targetId: "twitter", name: "Twitter / X" },
+          { icon: <span className="font-bold text-emerald-400 text-md">📻</span>, targetId: "tiktok", name: "Spotify" },
+          { icon: <span className="font-bold text-rose-400 text-md">🎵</span>, targetId: "tiktok", name: "TikTok" },
+          { icon: <Send className="w-5 h-5 text-white" />, targetId: "telegram", name: "Telegram" },
+          { icon: <span className="font-bold text-blue-400 text-xs">LN</span>, targetId: "instagram", name: "LinkedIn" },
+          { icon: <span className="font-bold text-violet-400 text-xs">DC</span>, targetId: "facebook", name: "Discord" },
+          { icon: <Globe className="w-5 h-5 text-white" />, targetId: "youtube", name: "Global Services" },
+          { icon: <Sparkles className="w-5 h-5 text-amber-300" />, targetId: "instagram", name: "Premium Boost" },
+          { icon: <Layers className="w-5 h-5 text-teal-400" />, targetId: "facebook", name: "Other Networks" },
+        ].map((item, idx) => {
+          const isSelected = selectedCategoryId === item.targetId;
+          return (
+            <button
+              key={idx}
+              id={`social-capsule-${idx}`}
+              onClick={() => {
+                setSelectedCategoryId(item.targetId);
+                setActiveTab("new-order");
+              }}
+              title={`SMM category ${item.name}`}
+              className={`aspect-square rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-md ${
+                isSelected 
+                  ? "bg-[#22c55e] scale-105 border-2 border-white ring-2 ring-emerald-500" 
+                  : "bg-slate-900 hover:bg-slate-800"
+              }`}
+            >
+              {item.icon}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* 3. QUICK-NAV QUADRANT SELECTOR (2x2 Grid) */}
+      <div id="quick-quadrant-tabs" className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        
+        {/* Tab 1: New Order */}
+        <button
+          id="quick-tab-new-order"
+          onClick={() => { setActiveTab("new-order"); setActiveTicketId(null); }}
+          className={`py-3.5 px-4 rounded-xl font-sans font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 border-2 transition-all cursor-pointer ${
+            activeTab === "new-order"
+              ? "bg-[#22c55e] border-[#22c55e] text-white shadow-md shadow-emerald-50/50"
+              : "bg-white border-[#22c55e] text-slate-800 hover:bg-emerald-50/30"
+          }`}
+        >
+          <span>🛒</span> New Order
+        </button>
+
+        {/* Tab 2: Add Funds */}
+        <button
+          id="quick-tab-add-funds"
+          onClick={() => { setActiveTab("add-funds"); setActiveTicketId(null); }}
+          className={`py-3.5 px-4 rounded-xl font-sans font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 border-2 transition-all cursor-pointer ${
+            activeTab === "add-funds"
+              ? "bg-[#22c55e] border-[#22c55e] text-white shadow-md shadow-emerald-50/50"
+              : "bg-white border-[#22c55e] text-slate-800 hover:bg-emerald-50/30"
+          }`}
+        >
+          <span>💵</span> Add Funds
+        </button>
+
+        {/* Tab 3: My Orders */}
+        <button
+          id="quick-tab-orders"
+          onClick={() => { setActiveTab("orders"); setActiveTicketId(null); }}
+          className={`py-3.5 px-4 rounded-xl font-sans font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 border-2 transition-all cursor-pointer ${
+            activeTab === "orders"
+              ? "bg-[#22c55e] border-[#22c55e] text-white shadow-md shadow-emerald-50/50"
+              : "bg-white border-[#22c55e] text-slate-800 hover:bg-emerald-50/30"
+          }`}
+        >
+          <span>📋</span> My Orders
+        </button>
+
+        {/* Tab 4: Ticket Support */}
+        <button
+          id="quick-tab-tickets"
+          onClick={() => { setActiveTab("tickets"); setActiveTicketId(null); }}
+          className={`py-3.5 px-4 rounded-xl font-sans font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 border-2 transition-all cursor-pointer ${
+            activeTab === "tickets"
+              ? "bg-[#22c55e] border-[#22c55e] text-white shadow-md shadow-emerald-50/50"
+              : "bg-white border-[#22c55e] text-slate-800 hover:bg-emerald-50/30"
+          }`}
+        >
+          <span>🎧</span> Ticket Support
+        </button>
+
+      </div>
+
+      {/* 4. BRAND SEARCH CONTAINER */}
+      <div id="search-bar-wrap" className="bg-[#f2fdf5] border border-emerald-500/15 rounded-2xl p-4.5 flex items-center relative">
+        <Search className="w-4 h-4 text-emerald-600 absolute left-8 top-1/2 transform -translate-y-1/2" />
+        <input
+          id="inp-panel-global-search"
+          type="text"
+          placeholder="Search package lists, order logs or transactions..."
+          value={activeTab === "services" ? serviceSearchText : activeTab === "orders" ? orderSearchText : ""}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (activeTab === "orders") {
+              setOrderSearchText(val);
+            } else {
+              setServiceSearchText(val);
+              setActiveTab("services");
+            }
+          }}
+          className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-400 text-slate-700"
+        />
+      </div>
+
+      {/* 4.5 FLOATING WHATSAPP & TELEGRAM HOTLINE WIDGETS */}
+      <div className="fixed bottom-6 right-6 flex flex-col gap-3.5 z-50">
+        {/* Telegram icon */}
+        <a
+          id="floating-tg"
+          href="https://t.me/smmboostesa"
+          target="_blank"
+          rel="noreferrer"
+          className="w-13 h-13 bg-[#0088cc] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all outline-none"
+          title="Join Telegram Support Channel"
+        >
+          <Send className="w-6 h-6 shrink-0" />
+        </a>
+
+        {/* WhatsApp icon */}
+        <a
+          id="floating-wa"
+          href="https://wa.me/12345678"
+          target="_blank"
+          rel="noreferrer"
+          className="w-13 h-13 bg-[#25d366] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all outline-none"
+          title="Direct WhatsApp Helpline"
+        >
+          <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
+            <path d="M12.004 0C5.378 0 .004 5.372.004 11.998c0 2.115.55 4.195 1.597 6.035L0 24l6.136-1.597a11.94 11.94 0 0 0 5.868 1.523c6.626 0 12-5.374 12-11.928C24.004 5.372 18.63 0 12.004 0zm0 22.002c-1.936 0-3.834-.5-5.514-1.45l-.396-.23L2.45 21.31l1.01-3.692-.256-.407a9.923 9.923 0 0 1-1.52-5.215C1.684 6.51 6.32 1.868 12.004 1.868c2.756 0 5.348 1.074 7.298 3.024A10.26 10.26 0 0 1 22.32 12c.002 5.49-4.814 10.002-10.316 10.002z" />
+          </svg>
+        </a>
+      </div>
+
+      {/* 5. ACTIVE VIEWPORT */}
+      <div className="w-full">
         <AnimatePresence mode="wait">
           {/* TAB 1: NEW ORDER FORM */}
           {activeTab === "new-order" && (

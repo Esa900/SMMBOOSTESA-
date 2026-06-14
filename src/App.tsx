@@ -16,7 +16,9 @@ import {
   Eye,
   Monitor,
   RefreshCw,
-  ArrowRight
+  ArrowRight,
+  Menu,
+  X
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
@@ -66,6 +68,10 @@ export default function App() {
   // Navigation and Simulated browser routing
   const [currentPath, setCurrentPath] = useState<string>("/");
   const [pathInput, setPathInput] = useState<string>("smmboostesa.com/");
+  
+  // Custom synced navigation states for FameGrows burger menu
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"new-order" | "orders" | "services" | "add-funds" | "tickets">("new-order");
 
   // Session user details (persisted)
   const [sessionUser, setSessionUser] = useState<User | null>(() => {
@@ -662,54 +668,304 @@ export default function App() {
       </div>
 
       {/* 2. GENERAL BANNER HEADERS */}
-      <header id="main-app-header" className="bg-white border-b border-slate-100 py-4 px-6 shrink-0 shadow-sm relative z-40">
+      <header id="main-app-header" className="bg-white border-b border-slate-100 py-3.5 px-4 sm:px-6 shrink-0 shadow-sm relative z-40">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           
-          <div className="flex items-center space-x-3 select-none">
-            <div className="w-10 h-10 rounded-2xl bg-slate-950 flex items-center justify-center text-white border border-slate-900 shadow-sm">
-              <Layers className="w-5.5 h-5.5 text-indigo-400" />
+          {/* Logo brand conforming to famegrows */}
+          <div className="flex items-center space-x-2 select-none cursor-pointer" onClick={() => navigateTo("/")}>
+            <div className="w-8.5 h-8.5 rounded-full bg-[#22c55e] flex items-center justify-center text-white font-extrabold text-sm shadow-md shadow-emerald-500/10">
+              ↗
             </div>
             <div>
-              <h1 className="font-display font-black text-xl tracking-tight text-slate-900 leading-none flex items-center gap-1.5">
-                SMMBOOSTESA <span className="font-sans px-1.5 py-0.5 rounded text-[10px] bg-indigo-50 border border-indigo-100 text-indigo-600 font-extrabold uppercase leading-none">famegrow standard</span>
+              <h1 className="font-display font-black text-lg tracking-tight text-slate-900 leading-none flex items-center gap-1.5">
+                FameGrows <span className="font-sans px-1 text-[8.5px] bg-emerald-50 rounded text-emerald-600 font-extrabold uppercase">SMMBOOSTESA</span>
               </h1>
-              <p className="text-[10px] text-slate-400 font-bold tracking-wider uppercase mt-0.5">Premium Social Media Marketing Agency</p>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Top-Tier Social Provider</p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2.5">
+            {/* Real-time Green Balance Pill button at the header row */}
             {sessionUser && (
-              <div className="flex items-center gap-3">
-                <div className="text-right hidden sm:block">
-                  <span className="text-[10px] text-slate-400 font-extrabold uppercase block">{sessionUser.role === 'admin' ? "🛡️ Admin" : "👤 Client Account"}</span>
-                  <span className="text-xs font-bold text-slate-700 block">{sessionUser.name}</span>
-                </div>
-                <button
-                  id="btn-session-logout"
-                  onClick={() => {
-                    setSessionUser(null);
-                    showToast("Logged out successfully");
-                    navigateTo("/");
-                  }}
-                  className="p-2 border border-rose-100 text-rose-500 rounded-xl hover:bg-rose-50 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold"
-                  title="Logout Session"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span className="hidden md:inline">Logout</span>
-                </button>
+              <div 
+                className="px-3.5 py-1.5 bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-mono font-black rounded-full tracking-wide shadow-sm flex items-center gap-1 cursor-pointer transition-all active:scale-95"
+                onClick={() => {
+                  navigateTo("/");
+                  setActiveTab("add-funds");
+                }}
+                title="Your wallet balance. Click to deposit funds"
+              >
+                <span>$</span>
+                <span>{currentUser.balance.toFixed(3)}</span>
               </div>
             )}
             
-            {!sessionUser && (
-              <div className="flex items-center justify-end text-xs font-bold text-slate-400">
-                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse mr-1.5 font-sans"></span>
-                <span>Active Sandbox Mode</span>
-              </div>
-            )}
+            {/* 3-Line Hamburger toggle button */}
+            <button
+              id="hamburger-menu-trigger"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-800 rounded-xl transition-all outline-none cursor-pointer flex items-center justify-center"
+              title="Open Navigation Menu"
+            >
+              <Menu className="w-5.5 h-5.5 text-slate-900" />
+            </button>
           </div>
 
         </div>
       </header>
+
+      {/* Dynamic 3-Line Hamburger Dropdown/Drawer overlay */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.3 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMenuOpen(false)}
+              className="fixed inset-0 bg-black z-50 cursor-pointer"
+            />
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 p-6 flex flex-col justify-between border-l border-slate-100 font-sans select-none"
+            >
+              <div>
+                {/* Drawer Header with Title and Dismiss (X) */}
+                <div className="flex items-center justify-between pb-6 border-b border-slate-100">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-7.5 h-7.5 rounded-full bg-[#22c55e] flex items-center justify-center text-white font-black text-xs">↗</div>
+                    <span className="font-display font-black text-lg text-slate-900">FameGrows</span>
+                  </div>
+                  <button
+                    onClick={() => setIsMenuOpen(false)}
+                    className="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-all cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* User Balance Banner inside Drawer */}
+                <div className="my-5 p-3.5 bg-emerald-50/50 border border-emerald-500/10 rounded-2xl flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-800">Account Balance</span>
+                  <div className="px-3.5 py-1 bg-[#22c55e] text-white text-xs font-black font-mono rounded-full tracking-wide shadow-sm">
+                    {"$" + (sessionUser ? currentUser.balance.toFixed(3) : "0.065")}
+                  </div>
+                </div>
+
+                {/* Main Hamburger 3-Line Menu List Navigation Items */}
+                <nav id="hamburger-menu-nav" className="space-y-1.5 max-h-[60vh] overflow-y-auto pr-1">
+                  
+                  {/* Item 1: New order (Solid bright green pill of famegrow!) */}
+                  <button
+                    onClick={() => {
+                      navigateTo("/");
+                      setActiveTab("new-order");
+                      setIsMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                      activeTab === "new-order" && currentPath === "/"
+                        ? "bg-[#22c55e] text-white shadow-md shadow-emerald-500/10"
+                        : "text-slate-800 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span>🛒</span> New order
+                    </span>
+                    <span className="text-[9px] uppercase font-black tracking-widest opacity-85">(Active)</span>
+                  </button>
+
+                  {/* Item 2: Add funds */}
+                  <button
+                    onClick={() => {
+                      navigateTo("/");
+                      setActiveTab("add-funds");
+                      setIsMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                      activeTab === "add-funds" && currentPath === "/"
+                        ? "bg-[#22c55e]/10 text-[#22c55e]"
+                        : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span>💰</span> Add funds
+                  </button>
+
+                  {/* Item 3: Orders */}
+                  <button
+                    onClick={() => {
+                      navigateTo("/");
+                      setActiveTab("orders");
+                      setIsMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                      activeTab === "orders" && currentPath === "/"
+                        ? "bg-[#22c55e]/10 text-[#22c55e]"
+                        : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span>👥</span> Orders
+                  </button>
+
+                  {/* Item 4: Services */}
+                  <button
+                    onClick={() => {
+                      navigateTo("/");
+                      setActiveTab("services");
+                      setIsMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                      activeTab === "services" && currentPath === "/"
+                        ? "bg-[#22c55e]/10 text-[#22c55e]"
+                        : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span>📋</span> Services
+                  </button>
+
+                  {/* Item 5: Mass order */}
+                  <button
+                    onClick={() => {
+                      navigateTo("/");
+                      setActiveTab("new-order");
+                      setIsMenuOpen(false);
+                      showToast("Mass Order panel loaded in system console!");
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-extrabold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer"
+                  >
+                    <span>📄</span> Mass order
+                  </button>
+
+                  {/* Item 6: API */}
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      showToast("API Access Module V2 is active for distribution");
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-extrabold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer"
+                  >
+                    <span>&lt;/&gt;</span> API
+                  </button>
+
+                  {/* Item 7: Tickets (with orange notification badge matching Famegrows!) */}
+                  <button
+                    onClick={() => {
+                      navigateTo("/");
+                      setActiveTab("tickets");
+                      setIsMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                      activeTab === "tickets" && currentPath === "/"
+                        ? "bg-[#22c55e]/10 text-[#22c55e]"
+                        : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span>💬</span> Tickets
+                    </span>
+                    <span className="px-2 py-0.5 bg-amber-500 text-white text-[9.5px] font-black rounded font-mono">
+                      {tickets.filter(t => t.status === "Answered").length || "4"}
+                    </span>
+                  </button>
+
+                  {/* Item 8: Child Panel */}
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      showToast("Deploy standard whitelabel clones for $10/month. File an inquiry ticket.");
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-extrabold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer"
+                  >
+                    <span>👤</span> Child Panel
+                  </button>
+
+                  {/* Item 9: Tutorial */}
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      showToast("Play interactive tutorial video in pop-up player");
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-extrabold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer"
+                  >
+                    <span>▶️</span> Tutorial
+                  </button>
+
+                  {/* Item 10: Notifications */}
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      showToast("SMM channels are stable under heavy API load.");
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-extrabold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer"
+                  >
+                    <span>🔔</span> Notifications
+                  </button>
+
+                  {/* Item 11: Account Profile */}
+                  <button
+                    onClick={() => {
+                      navigateTo("/");
+                      setIsMenuOpen(false);
+                      showToast(`Current Account: ${currentUser.name} (${currentUser.email})`);
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-extrabold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer"
+                  >
+                    <span>👤</span> Account
+                  </button>
+
+                  {/* Item 12: Admin Panel - compact named as "AP" at 3line compactly as requested!) */}
+                  <button
+                    onClick={() => {
+                      navigateTo("/admin");
+                      setIsMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                      currentPath === "/admin"
+                        ? "bg-rose-100 text-rose-700"
+                        : "text-rose-600 hover:bg-rose-50"
+                    }`}
+                  >
+                    <span>🛡️</span> AP
+                  </button>
+
+                </nav>
+              </div>
+
+              {/* Drawer Footer Session Logouts */}
+              <div className="pt-4 border-t border-slate-100">
+                {sessionUser ? (
+                  <div className="space-y-3">
+                    <div className="text-center">
+                      <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Session Handle</span>
+                      <span className="text-[11.5px] font-black text-slate-700 block mt-0.5 truncate">{sessionUser.name}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSessionUser(null);
+                        setIsMenuOpen(false);
+                        showToast("Logged out of the session");
+                        navigateTo("/");
+                      }}
+                      className="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-extrabold rounded-xl transition-all cursor-pointer block text-center uppercase tracking-wider"
+                    >
+                      Logout Session
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-center text-[10px] font-bold text-slate-400">
+                    SMMBOOSTESA Sandbox Room
+                  </div>
+                )}
+              </div>
+
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* 3. SUBPORTAL LAYOUT CONTEXT */}
       <main id="core-portal-grid" className="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full relative z-30">
@@ -1020,6 +1276,8 @@ export default function App() {
                   onAddFunds={handleAddFunds}
                   onAddTicket={handleAddTicket}
                   onAddTicketMessage={handleAddTicketMessage}
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
                 />
               </div>
             )}
