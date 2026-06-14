@@ -1310,7 +1310,7 @@ export default function App() {
 
                 <div className="fixed bottom-4 right-4 z-50">
                   <a 
-                    href="https://wa.me/8801700000000" 
+                    href="https://wa.me/8801750721835" 
                     target="_blank" 
                     rel="noreferrer"
                     className="p-3 bg-[#22c55e] hover:bg-emerald-600 text-white rounded-full shadow-lg flex items-center justify-center space-x-1.5 transition-all text-xs font-bold hover:scale-105"

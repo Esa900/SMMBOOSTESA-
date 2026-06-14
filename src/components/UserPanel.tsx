@@ -345,13 +345,18 @@ export default function UserPanel({
                 setActiveTab("new-order");
               }}
               title={`SMM category ${item.name}`}
-              className={`aspect-square rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-md ${
+              className={`rounded-xl flex flex-col items-center justify-center p-2 gap-1.5 transition-all cursor-pointer shadow-md text-center min-h-[86px] ${
                 isSelected 
-                  ? "bg-[#22c55e] scale-105 border-2 border-white ring-2 ring-emerald-500" 
-                  : "bg-slate-900 hover:bg-slate-800"
+                  ? "bg-[#22c55e] scale-105 border-2 border-white ring-2 ring-emerald-500 text-white" 
+                  : "bg-slate-900 hover:bg-slate-800 text-slate-100"
               }`}
             >
-              {item.icon}
+              <div className="shrink-0 flex items-center justify-center">
+                {item.icon}
+              </div>
+              <span className="text-[10px] font-black tracking-tight leading-tight block truncate w-full px-0.5">
+                {item.name}
+              </span>
             </button>
           )
         })}
@@ -452,7 +457,7 @@ export default function UserPanel({
         {/* WhatsApp icon */}
         <a
           id="floating-wa"
-          href="https://wa.me/12345678"
+          href="https://wa.me/8801750721835"
           target="_blank"
           rel="noreferrer"
           className="w-13 h-13 bg-[#25d366] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all outline-none"
