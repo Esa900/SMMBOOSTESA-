@@ -259,17 +259,51 @@ export default function App() {
 
     // 2. Services Sync
     const unsubServices = onSnapshot(collection(db, "services"), (snapshot) => {
-      if (snapshot.empty) {
-        // Seed default services
+      const dbServices: Service[] = [];
+      snapshot.forEach((doc) => {
+        dbServices.push(doc.data() as Service);
+      });
+
+      // Synchronize Firestore to match our newly updated famegrows initialServices
+      const initialIds = new Set(initialServices.map(s => s.id));
+      let needsSync = false;
+
+      // Check for missing or outdated services
+      for (const initialSrv of initialServices) {
+        const dbSrv = dbServices.find(s => s.id === initialSrv.id);
+        if (!dbSrv || dbSrv.rate !== initialSrv.rate || dbSrv.name !== initialSrv.name || dbSrv.description !== initialSrv.description) {
+          needsSync = true;
+          break;
+        }
+      }
+
+      // Check for deprecated service IDs in Firestore
+      for (const dbSrv of dbServices) {
+        if (!initialIds.has(dbSrv.id)) {
+          needsSync = true;
+          break;
+        }
+      }
+
+      if (snapshot.empty || needsSync) {
+        // Run full database alignment to match FameGrows catalog
+        console.log("Syncing FameGrows SMM Services with Firestore...");
+        
+        // Add or update correct services
         initialServices.forEach((srv) => {
-          setDoc(doc(db, "services", srv.id), srv).catch((e) => handleFirestoreError(e, OperationType.WRITE, `services/${srv.id}`));
+          setDoc(doc(db, "services", srv.id), srv)
+            .catch((e) => handleFirestoreError(e, OperationType.WRITE, `services/${srv.id}`));
+        });
+
+        // Delete any deprecated services from Firestore
+        dbServices.forEach((dbSrv) => {
+          if (!initialIds.has(dbSrv.id)) {
+            deleteDoc(doc(db, "services", dbSrv.id))
+              .catch((e) => handleFirestoreError(e, OperationType.DELETE, `services/${dbSrv.id}`));
+          }
         });
       } else {
-        const list: Service[] = [];
-        snapshot.forEach((doc) => {
-          list.push(doc.data() as Service);
-        });
-        setServices(list);
+        setServices(dbServices);
       }
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, "services");

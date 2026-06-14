@@ -13,121 +13,130 @@ export const initialServices: Service[] = [
   // Instagram
   {
     id: "IG-101",
-    name: "Instagram Followers [Real & Active / Lifetime Guarantee / Day 15K]",
+    name: "Instagram Followers [High Quality / Safe / Day 5K / Non-Drop]",
     category: "Instagram",
-    rate: 1.85,
+    rate: 12.89,
     min: 100,
     max: 100000,
-    description: "⚡ Start Time: 0-1 Hours\n⚡ Speed: 15,000/Day\n🛡️ Guarantee: Lifetime Auto-Refill\n👤 Quality: Real look profiles with posts and active stories."
+    description: "⚡ Start Time: 0-1 Hours\n⚡ Delivery Speed: 5,000/Day\n♻️ Guarantee: Lifetime Auto-Refill\n👤 Quality: Premium profiles with real-looking bio, avatars, and posts matching famegrows.com standard."
   },
   {
     id: "IG-102",
-    name: "Instagram Followers [High Speed / Low Drop / No Refill]",
+    name: "Instagram Followers [Active & Highly Engaged / Fast Delivery]",
     category: "Instagram",
-    rate: 0.95,
-    min: 200,
-    max: 250000,
-    description: "⚡ Start Time: Instant\n⚡ Speed: 50,000/Day\n❌ Guarantee: No Refill\n👤 Quality: Mixed bots and real-looking profiles."
+    rate: 19.99,
+    min: 100,
+    max: 50000,
+    description: "⚡ Start Time: Instant\n⚡ Delivery Speed: 8,000/Day\n♻️ Guarantee: 30 Days Auto-Refill\n👤 Quality: Highly active real profiles with post uploads and active stories."
   },
   {
-    id: "IG-201",
-    name: "Instagram Likes [Super Instant / Maximum 50k / Real Accounts]",
+    id: "IG-103",
+    name: "Instagram Likes [Real Accounts / Super Instant / Lifetime]",
     category: "Instagram",
-    rate: 0.45,
+    rate: 5.89,
     min: 50,
     max: 50000,
-    description: "⚡ Start Time: Instant (1-5 min)\n⚡ Speed: 20,000/Day\n🛡️ Guarantee: 30 Days Refill\n👤 Quality: Real active likes."
+    description: "⚡ Start Time: Super Instant (1-5 min)\n⚡ Delivery Speed: 15,000/Day\n🛡️ Guarantee: Lifetime Non-Drop\n👤 Quality: Real active likes from authentic accounts."
   },
   {
-    id: "IG-301",
-    name: "Instagram Reels Views [Instant Speed / Day 1M / Non-Drop]",
+    id: "IG-104",
+    name: "Instagram Reels Views [Instant Viral Boost / Non-Drop]",
     category: "Instagram",
-    rate: 0.12,
+    rate: 0.89,
     min: 500,
     max: 1000000,
-    description: "⚡ Start Time: Instant\n⚡ Speed: 1,000,000/Day\n♻️ Drop Rate: 0%\n📎 Link: Input full Reel link or post link."
+    description: "⚡ Start Time: Instant\n⚡ Speed: 1,000,000/Day\n♻️ Drop Rate: 0%\n📎 Link: Input full Reel or video link."
   },
 
   // YouTube
   {
     id: "YT-101",
-    name: "YouTube Subscribers [Organic / Non-Drop / Day 500]",
+    name: "YouTube Subscribers [Organic Growth / Non-Drop / Safe]",
     category: "YouTube",
-    rate: 18.50,
+    rate: 89.89,
     min: 50,
     max: 10000,
-    description: "⚡ Start Time: 12-24 Hours\n⚡ Speed: 200-500/Day\n🛡️ Guarantee: 30-Day Refill\n⚠️ Note: Channel must have at least 1 video of 2+ minutes."
+    description: "⚡ Start Time: 12-24 Hours\n⚡ Speed: 200-500 Subscribers/Day\n🛡️ Guarantee: 100% Lifetime Refill\n⚠️ Note: Channel must have at least 1 public video of any duration."
   },
   {
-    id: "YT-201",
-    name: "YouTube Views [Super Stable / External & Search Traffic]",
+    id: "YT-102",
+    name: "YouTube Views [Super Stable / Suggested & External Traffic]",
     category: "YouTube",
-    rate: 3.20,
+    rate: 4.99,
     min: 500,
     max: 200000,
-    description: "⚡ Start Time: 1-3 Hours\n⚡ Speed: 5,000-10,000/Day\n🎯 Traffic Sources: Suggested videos, YouTube search, external embeds.\n🛡️ Guarantee: Fully Lifetime Guaranteed."
-  },
-  {
-    id: "YT-301",
-    name: "YouTube Watch Time Hours [100% Monetizable / 15+ Min Video]",
-    category: "YouTube",
-    rate: 11.20,
-    min: 100,
-    max: 4000,
-    description: "⚡ Start Time: 24-48 Hours\n⚡ Speed: 200-400 Hours/Day\n⚠️ Requirements: Video must be 15+ Minutes long. Public video only."
+    description: "⚡ Start Time: 1-3 Hours\n⚡ Speed: 5,000-10,000/Day\n🎯 Traffic Sources: Suggested videos, YouTube search engine optimization.\n🛡️ Guarantee: Fully Lifetime Guaranteed."
   },
 
   // TikTok
   {
     id: "TK-101",
-    name: "TikTok Followers [Real Look / Day 10k / Safe]",
+    name: "TikTok Followers [Premium Profiles / Fast Delivery / Safe]",
     category: "TikTok",
-    rate: 3.80,
+    rate: 14.89,
     min: 100,
     max: 50000,
-    description: "⚡ Start: 0-6 hours\n⚡ Speed: 10K/Day\n🛡️ 30-Day Refill policy. Stable and safe profiles."
+    description: "⚡ Start: 0-6 hours\n⚡ Speed: 10K/Day\n🛡️ 30-Day Auto-Refill. Non-Drop high retention profiles."
   },
   {
-    id: "TK-201",
-    name: "TikTok Views [Super Viral Boost / Instant / Max 10M]",
+    id: "TK-102",
+    name: "TikTok Likes [Instant Viral Boost / Active Accounts]",
     category: "TikTok",
-    rate: 0.04,
+    rate: 7.99,
+    min: 100,
+    max: 50000,
+    description: "⚡ Start Time: Instant\n⚡ Speed: 15,000/Day\n👤 Quality: Real active likes to trigger the TikTok algorithm."
+  },
+  {
+    id: "TK-103",
+    name: "TikTok Views [Super Instant / Viral Algorithm Trigger]",
+    category: "TikTok",
+    rate: 0.49,
     min: 1000,
     max: 10000000,
-    description: "⚡ Start Time: Instant\n⚡ Cost-effective tool for boosting statistics and algorithm trigger."
+    description: "⚡ Start Time: Instant\n⚡ Speed: 5,000,000/Day\n📎 Link: Input full TikTok video link."
   },
 
   // Telegram
   {
     id: "TG-101",
-    name: "Telegram Channel Members [High Quality / Safe / Non-Drop]",
+    name: "Telegram Channel Members [High Quality / Non-Drop / Instant]",
     category: "Telegram",
-    rate: 2.10,
+    rate: 11.49,
     min: 100,
     max: 25000,
-    description: "⚡ Start: Instant to 2 hours.\n👤 Quality: Clean active-looking profiles with English, Arabic, Russian names."
+    description: "⚡ Start: Instant to 2 hours\n👤 Quality: Safe active-looking English & global names. Drop rate 0% guaranteed."
   },
 
   // Facebook
   {
     id: "FB-101",
-    name: "Facebook Page Likes & Followers [Premium / Organic Speed]",
+    name: "Facebook Page Likes & Followers [Premium / Lifetime Refill]",
     category: "Facebook",
-    rate: 5.40,
+    rate: 24.89,
     min: 250,
     max: 50000,
-    description: "⚡ Start: 1-3 hours\n⚡ Speed: 2K-5K/Day\n🛡️ Guarantee: Lifetime guarantee against drops."
+    description: "⚡ Start: 1-3 hours\n⚡ Speed: 2,500/Day\n🛡️ Guarantee: Lifetime guarantee against drops."
+  },
+  {
+    id: "FB-102",
+    name: "Facebook Video Views [Ultra Fast Speed / Monetizable]",
+    category: "Facebook",
+    rate: 1.89,
+    min: 500,
+    max: 100000,
+    description: "⚡ Start Time: Instant (1-10 min)\n⚡ Speed: 100,000/Day\n🎯 Traffic Sources: In-stream ads and video recommendations."
   },
 
   // Twitter/X
   {
     id: "TW-101",
-    name: "Twitter (X) Followers [Real Grade / Non-Drop / Stable]",
+    name: "Twitter (X) Followers [Real Grade / Non-Drop / Premium]",
     category: "Twitter / X",
-    rate: 12.90,
+    rate: 34.89,
     min: 100,
     max: 20000,
-    description: "⚡ Start: 1-2 hours\n⚡ Quality: High quality profiles with crypto & tech bio histories."
+    description: "⚡ Start: 1-2 hours\n⚡ Speed: 1,500/Day\n👤 Quality: High tier profiles with crypto, tech, and creative bios."
   }
 ];
 
