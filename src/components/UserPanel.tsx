@@ -250,7 +250,7 @@ export default function UserPanel({
   const activeTicket = tickets.find(t => t.id === activeTicketId);
 
   return (
-    <div id="famegrows-client-layout" className="w-full space-y-6 font-sans">
+    <div id="esa-client-layout" className="w-full space-y-6 font-sans">
       {/* 1. TOP HIGH-POLISHED STATS CARDS BLOCK */}
       <div id="user-stats-cards-grid" className="grid grid-cols-2 md:grid-cols-4 gap-4">
         

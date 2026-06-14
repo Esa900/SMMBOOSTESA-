@@ -41,6 +41,7 @@ interface AdminPanelProps {
   onCloseTicket: (ticketId: string) => void;
   onApproveTransaction: (txnId: string) => void;
   onRejectTransaction: (txnId: string) => void;
+  onDeleteUser?: (userId: string) => void;
 }
 
 export default function AdminPanel({
@@ -58,6 +59,7 @@ export default function AdminPanel({
   onCloseTicket,
   onApproveTransaction,
   onRejectTransaction,
+  onDeleteUser,
 }: AdminPanelProps) {
   const [activeAdminTab, setActiveAdminTab] = useState<"dashboard" | "orders" | "services" | "users" | "tickets" | "deposits">("dashboard");
 
@@ -215,9 +217,7 @@ export default function AdminPanel({
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
-                      if (window.confirm(`Approve deposit of $${txn.amount.toFixed(2)} for ${txn.userName}?`)) {
-                        onApproveTransaction(txn.id);
-                      }
+                      onApproveTransaction(txn.id);
                     }}
                     className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all cursor-pointer shadow-sm uppercase tracking-wider text-center"
                   >
@@ -225,9 +225,7 @@ export default function AdminPanel({
                   </button>
                   <button
                     onClick={() => {
-                      if (window.confirm("Reject this transaction request?")) {
-                        onRejectTransaction(txn.id);
-                      }
+                      onRejectTransaction(txn.id);
                     }}
                     className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold transition-all cursor-pointer border border-red-100 uppercase tracking-wider text-center"
                   >
@@ -920,7 +918,7 @@ export default function AdminPanel({
                       <th className="py-3 px-2 text-right">Wallet Balance</th>
                       <th className="py-3 px-2 text-right">Sum Total Spent</th>
                       <th className="py-3 px-2 text-center">Status</th>
-                      <th className="py-3 px-2 text-center">Adjust Balance</th>
+                      <th className="py-3 px-2 text-center">Console Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
@@ -940,17 +938,31 @@ export default function AdminPanel({
                             {usr.role === "admin" ? "Admin" : "Client"}
                           </span>
                         </td>
-                        <td className="py-3.5 px-2 text-center">
+                        <td className="py-3.5 px-2 text-center flex items-center justify-center gap-1.5">
                           <button
                             id={`btn-adjust-bal-trigger-${usr.id}`}
                             onClick={() => {
                               setAdjustBalanceUserId(usr.id);
                               setAdjustBalanceAmount(10);
                             }}
-                            className="px-3 py-1 bg-slate-50 hover:bg-slate-900 hover:text-white border border-slate-150 rounded-lg text-[10px] font-bold transition-all text-slate-600 cursor-pointer"
+                            className="px-2.5 py-1 bg-slate-50 hover:bg-slate-900 hover:text-white border border-slate-150 rounded-lg text-[10px] font-bold transition-all text-slate-600 cursor-pointer"
                           >
                             Modify ($)
                           </button>
+                          {usr.role !== "admin" && (
+                            <button
+                              id={`btn-delete-user-${usr.id}`}
+                              onClick={() => {
+                                if (onDeleteUser) {
+                                  onDeleteUser(usr.id);
+                                }
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer inline-flex items-center"
+                              title="Delete User Account"
+                            >
+                              <Trash2 className="w-3.8 h-3.8" />
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}

@@ -443,6 +443,12 @@ export default function App() {
     showToast("SMM Package deleted");
   };
 
+  // Action: Remove / Delete client account
+  const handleDeleteUser = (userId: string) => {
+    setUsers((prev) => prev.filter((u) => u.id !== userId));
+    showToast(`User account ${userId} has been permanently deleted.`);
+  };
+
   // Action: Reply ticket as administrator
   const handleAdminReplyTicket = (ticketId: string, message: string) => {
     setTickets((prevTickets) =>
@@ -580,105 +586,18 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#fafbfc] text-slate-800 font-sans antialiased pb-16 flex flex-col">
       
-      {/* 1. REALISTIC INTERACTIVE MOCK BROWSER CHROME CONTROLLER */}
-      <div id="mock-browser-chrome" className="bg-slate-900 border-b border-slate-800 px-4 py-2.5 shrink-0 z-50">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-          
-          {/* Navigation indicators / Browser status */}
-          <div className="flex items-center space-x-3 text-slate-300">
-            <div className="flex space-x-1.5 shrink-0">
-              <span className="w-3 h-3 rounded-full bg-rose-500/80 inline-block"></span>
-              <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
-              <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
-            </div>
-            
-            <div className="flex items-center space-x-1.5 bg-slate-800 px-2 py-0.5 rounded text-[10px] text-slate-400 font-mono">
-              <Monitor className="w-3 h-3 text-indigo-400" />
-              <span>SMMBOOSTESA Sandbox</span>
-            </div>
-          </div>
-
-          {/* Location / Address URL Bar */}
-          <div className="flex-1 max-w-2xl w-full flex items-center bg-slate-950 border border-slate-800 rounded-xl px-3 py-1 text-slate-300 relative">
-            <span className="text-[11px] text-slate-500 select-none mr-1 font-mono">https://</span>
-            <input 
-              id="browser-url-input"
-              type="text" 
-              value={pathInput}
-              onChange={(e) => setPathInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  const val = pathInput.toLowerCase();
-                  if (val.includes("/admin") || val.includes("smmboostesa/admin")) {
-                    navigateTo("/admin");
-                  } else {
-                    navigateTo("/");
-                  }
-                }
-              }}
-              className="flex-1 bg-transparent text-xs text-slate-200 outline-none font-sans py-0.5"
-            />
-            <button 
-              id="btn-browser-refresh"
-              onClick={() => {
-                const val = pathInput.toLowerCase();
-                if (val.includes("/admin") || val.includes("smmboostesa/admin")) {
-                  navigateTo("/admin");
-                } else {
-                  navigateTo("/");
-                }
-                showToast("Page refreshed successfully!");
-              }}
-              className="text-slate-500 hover:text-slate-300"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* Quick Route Switches (Instant Navigation) */}
-          <div className="flex items-center space-x-2 shrink-0">
-            <span className="text-slate-400 text-[10px] uppercase font-bold mr-1 hidden sm:inline">Test Views:</span>
-            
-            <button
-              id="btn-navigate-client"
-              onClick={() => navigateTo("/")}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                currentPath === "/" 
-                  ? "bg-indigo-600 text-white shadow-sm" 
-                  : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200"
-              }`}
-            >
-              smmboostesa.com/
-            </button>
-
-            <button
-              id="btn-navigate-admin"
-              onClick={() => navigateTo("/admin")}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                currentPath === "/admin" 
-                  ? "bg-red-600 text-white shadow-sm" 
-                  : "bg-slate-800 text-red-400 hover:bg-slate-700 hover:text-red-300"
-              }`}
-            >
-              <Lock className="w-3 h-3" /> smmboostesa/admin
-            </button>
-          </div>
-
-        </div>
-      </div>
-
       {/* 2. GENERAL BANNER HEADERS */}
       <header id="main-app-header" className="bg-white border-b border-slate-100 py-3.5 px-4 sm:px-6 shrink-0 shadow-sm relative z-40">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           
-          {/* Logo brand conforming to famegrows */}
+          {/* Logo brand conforming to ESA DEGITAL BOOST BD */}
           <div className="flex items-center space-x-2 select-none cursor-pointer" onClick={() => navigateTo("/")}>
             <div className="w-8.5 h-8.5 rounded-full bg-[#22c55e] flex items-center justify-center text-white font-extrabold text-sm shadow-md shadow-emerald-500/10">
               ↗
             </div>
             <div>
               <h1 className="font-display font-black text-lg tracking-tight text-slate-900 leading-none flex items-center gap-1.5">
-                FameGrows <span className="font-sans px-1 text-[8.5px] bg-emerald-50 rounded text-emerald-600 font-extrabold uppercase">SMMBOOSTESA</span>
+                ESA DEGITAL BOOST BD <span className="font-sans px-1 text-[8.5px] bg-emerald-50 rounded text-emerald-600 font-extrabold uppercase">SMMBOOSTESA</span>
               </h1>
               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Top-Tier Social Provider</p>
             </div>
@@ -739,7 +658,7 @@ export default function App() {
                 <div className="flex items-center justify-between pb-6 border-b border-slate-100">
                   <div className="flex items-center space-x-2">
                     <div className="w-7.5 h-7.5 rounded-full bg-[#22c55e] flex items-center justify-center text-white font-black text-xs">↗</div>
-                    <span className="font-display font-black text-lg text-slate-900">FameGrows</span>
+                    <span className="font-display font-black text-lg text-slate-900">ESA DEGITAL BOOST BD</span>
                   </div>
                   <button
                     onClick={() => setIsMenuOpen(false)}
@@ -1053,6 +972,7 @@ export default function App() {
                   onCloseTicket={handleCloseTicket}
                   onApproveTransaction={handleApproveTransaction}
                   onRejectTransaction={handleRejectTransaction}
+                  onDeleteUser={handleDeleteUser}
                 />
               </div>
             )}
@@ -1063,16 +983,16 @@ export default function App() {
         {currentPath === "/" && (
           <div>
             {!sessionUser ? (
-              /* Public Landing Page (famegrow.com copy layout!) */
+              /* Public Landing Page (ESA DEGITAL BOOST BD copy layout!) */
               <div className="space-y-12 font-sans">
                 
-                {/* 1. Hero copy of famegrow.com */}
+                {/* 1. Hero copy of ESA DEGITAL BOOST BD */}
                 <div className="text-center max-w-3xl mx-auto space-y-4 pt-4">
                   <span className="p-1 px-3 bg-indigo-50 text-indigo-600 rounded-full font-bold text-[10px] uppercase tracking-widest border border-indigo-100 font-sans">
                     🔥 SMMBOOSTESA.COM • #1 SMM Agency Distribution Solution
                   </span>
                   <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight font-display">
-                    Premium Social Media Growth, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600">Copied from Famegrow</span>
+                    Premium Social Media Growth, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600">ESA DEGITAL BOOST BD</span>
                   </h2>
                   <p className="text-sm sm:text-base text-slate-500 max-w-xl mx-auto leading-relaxed font-sans">
                     Source lightning fast, organic-grade likes, subscribers, verified views, and custom comments. Fully persistent user database & instant manual bKash/Nagad gateways.
@@ -1165,7 +1085,7 @@ export default function App() {
                           id="inp-signup-email"
                           type="email"
                           required
-                          placeholder="e.g. customer@famegrow.com"
+                          placeholder="e.g. customer@smmboostesa.com"
                           value={signupEmail}
                           onChange={(e) => setSignupEmail(e.target.value)}
                           className="w-full px-3.5 py-2.5 text-xs bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white text-slate-800 font-medium"
